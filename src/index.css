@@ -1,0 +1,88 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Montserrat';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #fff;
+}
+
+code {
+  font-family: 'Montserrat', sans-serif;
+}
+
+input:focus {
+  outline: none; /* Remove the default focus outline (not recommended for accessibility) */
+  border: 0.5px solid transparent; /* Set the border to transparent to remove it */
+}
+
+input {
+  outline: none; /* Remove the default focus outline (not recommended for accessibility) */
+  border: 0.5px solid transparent; /* Set the border to transparent to remove it */
+}
+button {
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  background-color: #30BE7A;
+  width: 300px;
+  height: 50px;
+  cursor: pointer;
+}
+
+button:active {
+  opacity: 0.8; /* Change the opacity when the button is clicked */
+  cursor: progress;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 #fff;
+}
+
+/* For WebKit-based browsers (Chrome, Safari, etc.) */
+*::-webkit-scrollbar {
+  width: 15px; /* Adjust the width as needed */
+}
+
+*::-webkit-scrollbar-track {
+  background: white; /* Make the track background transparent */
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #ffff; /* Make the thumb (the draggable part) transparent */
+  border-radius: 20px;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  background-color: #d9d9d9;
+  background-repeat: none;
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed; /* This line prevents the background from scrolling */
+  font-family: 'Montserrat';
+}
+
+.unauthorized-container {
+ width: 100%;
+ height: 100vh;
+}
+
+/* this only use to handle auth css */
+
+@media screen and (min-width: 1920px) and (min-height: 1080px) {
+
+  .container {
+    max-width: 10000px;
+  }
+
+  .unauthorized-container {
+    max-width: 10000px;
+    height: 100vh;
+  }
+	
+}

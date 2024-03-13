@@ -1,0 +1,450 @@
+
+
+.global-buttons {
+  border: 1px solid #d9d9d9;
+  border-radius: 5px;
+  width: 250px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  text-decoration-line: none;
+  justify-content: space-between;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-bottom: 5px;
+  background-color: #ECF1F7;
+}
+
+.global-buttons:active {
+  background-color: #d9d9d9;
+  color: #FFF;
+}
+
+.dropdown-menu .global-buttons p {
+  width: 100%;
+  text-decoration-line: none;
+  border: none;
+  outline: none;
+  margin: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  color: #30BE7A;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.dropdown-menu .global-buttons:active p {
+  color: #ECF1F7;
+}
+
+.dropdown-menu .global-buttons svg {
+  color: #30BE7A;
+}
+
+.dropdown-menu .global-buttons:active svg {
+  color: #ECF1F7;
+}
+
+.newsletter-input {
+  border: 1px solid #d9d9d9;
+  border-radius: 5px;
+  width: 500px;
+  height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-bottom: 5px;
+  text-decoration: none;
+}
+
+.newsletter-input select {
+width: 100%;
+border: none;
+outline: none;
+appearance: none; /* Remove the default arrow in some browsers */
+-webkit-appearance: none; /* Remove the default arrow in WebKit/Blink browsers */
+-moz-appearance: none; /* Remove the default arrow in Firefox */
+padding-right: 1em; /* Add some padding to compensate for the removal of the arrow */
+}
+
+.newsletter-input input {
+
+  width: 100%;
+  font-size: 25px;
+}
+.newsletter-input input::placeholder {
+  color: #d9d9d9; 
+}
+.newsletter-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 10px 20px;
+
+}
+.newsletter-wrapper button {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.global-large-text-field {
+  border: 2px solid #d9d9d9;
+  border-radius: 5px;
+  width: 300px;
+  height: 175px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-bottom: 5px;
+  text-decoration: none;
+}
+.global-input {
+    border: 2px solid #d9d9d9;
+    border-radius: 5px;
+    width: 300px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 5px;
+    text-decoration: none;
+}
+
+.global-input a {
+  margin-top: 0px;
+    align-self: center;
+    padding-right: 0px;
+    cursor: pointer;
+    color: #30BE7A;
+}
+
+.global-large-text-field textarea {
+  width: 100%;
+  margin-top: 20px;
+  height: 85%;
+  border: none;
+  resize: none;
+  outline: none;
+}
+
+.global-large-text-field textarea::placeholder {
+  color: #d9d9d9
+}
+
+
+.global-input select {
+  width: 100%;
+  border: none;
+  outline: none;
+  appearance: none; /* Remove the default arrow in some browsers */
+  -webkit-appearance: none; /* Remove the default arrow in WebKit/Blink browsers */
+  -moz-appearance: none; /* Remove the default arrow in Firefox */
+  padding-right: 1em; /* Add some padding to compensate for the removal of the arrow */
+}
+
+.global-input input {
+
+    background-color: transparent;
+    width: 100%;
+}
+.global-input input::placeholder {
+    color: #d9d9d9; 
+}
+
+.header-title {
+    width: 320px;
+    color: #30BE7A;
+    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: 400;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #ECF1F7;
+  color: #fff;
+  position: fixed; /* Change this to "fixed" */
+  left: 0px;
+  width: 230px; /* Set the width to 100% */
+  height: 100vh;
+  z-index: 999; /* Add z-index to ensure it's above other content */
+  overflow-x: scroll;
+}
+
+
+
+
+.header h3 {
+  color: #000;
+  margin-bottom: 0px;
+  margin-top: 50px;
+  font-weight: 900;
+  font-size: 35px;
+}
+.header p {
+  color: #000;
+  margin-top: 5px;
+  font-size: 12px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.header button {
+  background-color: #30BE7A;
+  width: 220px;
+  position: absolute;
+  font-weight: 300;
+  font-family: 'Montserrat';
+  bottom: 50px;
+  font-size: 20px;
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 50px;
+}
+
+.right span:hover {
+  cursor: pointer;
+}
+
+.tab-button {
+	display: block;
+  background-color: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 300;
+  /* font-family: 'Montserrat'; */
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tab-underline {
+	margin-top: -20px;
+	position: absolute;
+	bottom: 15px;
+	font-size: 30px;
+	font-weight: bolder;
+}
+
+.tab-active {
+  width: 200px;
+  height: 50px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 20px;
+  color: #fff;
+  background-color: #30BE7A;
+  text-decoration: none;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.tab-inactive {
+  width: 200px;
+  height: 50px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 20px;
+  color: rgba(0, 0, 0, .5);
+  background-color: #d9d9d9;
+  text-decoration: none;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.profile-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;   
+  margin-left: 30px;
+  margin-right: 30px;
+  cursor: pointer;
+}
+
+.left {
+  /* font-family: 'Montserrat'; */
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 20px;
+  cursor: pointer;
+}
+.overview-container {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+}
+.data-header {
+  text-align: left;
+  align-self: flex-start;
+  
+  /* font-family: 'Montserrat'; */
+}
+.data-header h1 {
+
+  font-weight: 700;
+}
+
+.data-header p {
+
+  color: #30BE7A;
+  font-size: 16px;
+  margin-top: 2rem;
+  font-weight: 400;
+}
+
+/* card styles  */
+
+.card-container {
+	width: 500px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	border-radius: 5px;
+  padding-bottom: 20px;
+}
+
+.card-wrapper {
+	padding: 20px 20px;
+	width: 90%;
+	background-color: #fff;
+	border-radius: 5px;
+
+}
+
+/* Modal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  overflow-y: auto;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 80%;
+  max-height: 80%;
+}
+
+.container .image-overlay .modal-overlay .modal-content .modal-image {
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+	transform: translateX(0%);
+	position: relative;
+  object-fit: contain;
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  top: 75px; /* Adjust the top position according to your design */
+  right: 75px; /* Adjust the right position according to your design */
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  z-index: 1; /* Ensure the dropdown appears above other elements */
+}
+
+.dropdown-menu p {
+  margin: 0px;
+  margin-top: 35px;
+  margin-bottom: 5px;
+  color: #30BE7A;
+  font-weight: bold;
+}
+
+.dropdown-menu h5 {
+  margin: 0;
+  margin-bottom: 30px;
+  font-size: 12px;
+  color: #d9d9d9;
+  font-weight: 400;
+}
+
+.dropdown-menu button {
+  margin-top: 50px;
+  width: 275px;
+  padding: 5px 10px;
+  background-color: #30BE7A;
+  color: #fff; 
+  border: none;
+  cursor: pointer;
+}
+
+.accountbutton {
+  width: 30px;
+  height: 30px;
+  border-radius: 200%;
+  margin-right: 50px;
+}
+
+  @media screen and (min-width: 280px) and (min-height: 500px) and (max-width: 700px) and (max-height: 1000px) {
+
+  .card-container {
+    width: 100%;
+  }
+
+  .card-wrapper {
+    padding: 10px;
+  } 
+
+  .app-name {
+    display: none;
+  }
+
+  .header {
+    padding: 20px 20px;
+  }
+}
+
+@media screen and (min-width: 100px) and (min-height: 100px) and (max-width: 279px) and (max-height: 400px) {
+
+  .tab-button {
+    font-size: 10px;
+  }
+  
+}
