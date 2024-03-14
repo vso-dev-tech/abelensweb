@@ -46,7 +46,6 @@ export default function Sales({}: Props) {
             newData.push(data)
           });
           setrow(newData);
-          console.log(newData)
         });
     
         return () => unsubscribe();
@@ -91,7 +90,6 @@ export default function Sales({}: Props) {
         setIsModalOpen(true)
         settransid(item.transId)
         setsales(item)
-        console.log(item.transId)
         console.log(transid)
     }
 

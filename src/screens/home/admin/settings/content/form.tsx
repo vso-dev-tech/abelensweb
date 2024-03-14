@@ -60,7 +60,6 @@ export default function Form({ modalData}: Props) {
                     storeid:form.storeid,
                     uid: form.uid,
 			}).then((res) => {
-					console.log(res)
 					alert('Successfully added to Staff!')
 				})
 				

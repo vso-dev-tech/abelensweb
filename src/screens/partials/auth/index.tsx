@@ -74,7 +74,6 @@ export default function Login({}) {
     if (userData.length > 0) {
       settoast('verifying credentials...')
       const isAdmin = userData.some((user) => user.type === "admin");
-      console.log(isAdmin);
       if (isAdmin) {
         const email = userData[0].email;
         const password = loginpassword;

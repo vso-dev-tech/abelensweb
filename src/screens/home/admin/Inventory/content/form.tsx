@@ -55,7 +55,6 @@ export default function Form({onClick, modalData}: Props) {
 					unitsales: 0,
 					branch: form.branch,
 			}).then((res) => {
-					console.log(res)
 					alert('Successfully added to inventory!')
 					setform({
 						active: true,
@@ -88,7 +87,6 @@ export default function Form({onClick, modalData}: Props) {
         });
 				const newItemNo = Math.floor(maxItemNo + 1);
         setform((prev) => ({...prev, itemno: newItemNo})); 
-				console.log(newItemNo);
 
     });
 
