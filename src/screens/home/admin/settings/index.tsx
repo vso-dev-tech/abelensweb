@@ -7,6 +7,9 @@ import Papa from 'papaparse';
 import { db } from '../../../../firebase/index';
 import { menu } from '../Inventory';
 import SettingTable from './content/userTable';
+import Form from './content/form';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClose } from '@fortawesome/free-solid-svg-icons';
 
 interface appcontrol {
 	id: string,
@@ -21,6 +24,9 @@ export default function Settings({}) {
 	const [uploading, setuploading] = useState<boolean>(false);
 	const [appuserdata, setuserdata] = useState<appuserdata[]>([])
 	const [openUserModal, setopenUserModal] = useState<boolean>(false)
+	const [opencreateaccount, setopencreateAccount] = useState<boolean>(false)
+	const [modalData, setModalData] = useState<appuserdata>()
+	const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 	const [branch, setbranch] = useState('manilajd')
   const handleFileChange = (e: any) => {
 	if (e.target.files && e.target.files.length > 0) {
@@ -236,10 +242,36 @@ export default function Settings({}) {
 			 sx={{overflowY: 'scroll', width: '100%'}}
 		>
 					<Stack sx={{justifyContent: 'center', alignItems: 'center', display: 'flex', marginTop: 20}}>
-						<SettingTable data = {appuserdata} />
+					<Button onClick={() => setopencreateAccount(true)} variant='contained' sx = {{width: '10%', backgroundColor: '#30BE7A', fontWeight: 'bolder', marginTop: 10, alignSelf: 'flex-start', margin: 5}}>Create Account</Button>
+
+						<SettingTable data = {appuserdata} handleView={(e) =>{ setModalData(e); setIsModalOpen(true); }} />
 						<Button onClick={() => setopenUserModal(false)} variant='contained' sx = {{width: '30%', backgroundColor: '#30BE7A', fontWeight: 'bolder', marginTop: 10}}>GO BACK</Button>
 					</Stack>
 		</Modal>
+		<Modal
+			 component={'feDropShadow'}
+			 open = {opencreateaccount}
+			 onClose={() => setopencreateAccount(false)}
+			 sx={{overflowY: 'scroll', width: '100%'}}
+		>	
+					<Stack sx={{justifyContent: 'center', alignItems: 'center', display: 'flex', marginTop: 20}}>
+					<Form />
+					<FontAwesomeIcon onClick={() => setopencreateAccount(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
+
+					</Stack>
+		</Modal>
+        <Modal
+            component={'feDropShadow'}
+            open = {isModalOpen}
+            onClose={() => setModalData(undefined)}
+            sx={{overflowY: 'scroll'}}
+            
+        >
+           <Stack sx={{justifyContent: 'center', alignItems: 'center', display: 'flex', marginTop: 20}}>
+                <Form modalData={modalData} />
+                <FontAwesomeIcon onClick={() => setIsModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
+           </Stack>
+        </Modal>
     </div>
   )
 }

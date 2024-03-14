@@ -9,14 +9,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
 import firestore from '@firebase/firestore'
 import { BarChart } from '@mui/x-charts';
+import Form from './form';
 type Props = {
 
-    data: appuserdata[]
+    data: appuserdata[],
+    handleView: (e: any) => void
 
 }
  
 
-export default function SettingTable({data}: Props) {
+export default function SettingTable({data, handleView}: Props) {
 
     const rows: appuserdata[] = data
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
@@ -57,12 +59,6 @@ export default function SettingTable({data}: Props) {
       if (a[orderBy] > b[orderBy]) return isAsc ? 1 : -1;
       return 0;
     });
-
-    const handleView = (item: appuserdata) => {
-        setIsModalOpen(true)
-        setModalData(item)
-    }
-
   return (
     
     <Stack sx={{width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
@@ -162,19 +158,8 @@ export default function SettingTable({data}: Props) {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </div>
-        </TableContainer>
-        <Modal
-            component={'feDropShadow'}
-            open = {isModalOpen}
-            onClose={() => setModalData(null)}
-            sx={{overflowY: 'scroll'}}
-            
-        >
-            <div>
-                {/* <Form onClick={() => setIsModalOpen(false)} data={modalData}/> */}
-                <FontAwesomeIcon onClick={() => setIsModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
-            </div>
-        </Modal>
+          
+		</TableContainer>
     </Stack>
   )
 }

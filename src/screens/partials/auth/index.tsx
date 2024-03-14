@@ -43,7 +43,7 @@ export default function Login({}) {
  
  getUserData();
    if(currentUser != null){
-     navigate("/admin/statistics");
+     navigate("/admin/sales");
    }
    }, [currentUser]);
 
@@ -82,7 +82,7 @@ export default function Login({}) {
         await signInWithEmailAndPassword(auth, email, password).then(() => {
           setloading(false)
           setsubmitted(false)
-          navigate("/admin/submissions")
+          navigate("/admin/sales")
         }).catch((error: any) => {
           console.log(error)
           if(error == 'FirebaseError: Firebase: Error (auth/invalid-login-credentials).'){
