@@ -9,11 +9,6 @@ import { Header } from 'screens/components/gen/header';
 import Navbarmenu from 'screens/components/gen/navigator/navbarmenu';
 import Error from 'screens/partials/Error/Error';
 import Logout from 'screens/partials/auth/logout';
-import Account from 'screens/home/details/account';
-import Form from 'screens/home/forms';
-import Submissions from 'screens/home/admin/Sales';
-import WebControl from 'screens/home/admin/webcontrol';
-import Status from 'screens/home/status';
 import Sales from 'screens/home/admin/Sales';
 import Inventory from 'screens/home/admin/Inventory';
 import Settings from 'screens/home/admin/settings';
@@ -25,8 +20,8 @@ const App: React.FC = () => {
   const { currentUser } = useContext(AuthContext);
 
   const ProtectedRoute: React.FC<children> = ({ children }) => {
-    console.log(currentUser)
-    if (currentUser?.email === '') {
+    console.log()
+    if (currentUser == null) {
       return <Navigate to="/" />;
     }
 
