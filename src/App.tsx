@@ -20,7 +20,6 @@ const App: React.FC = () => {
   const { currentUser } = useContext(AuthContext);
 
   const ProtectedRoute: React.FC<children> = ({ children }) => {
-    console.log()
     if (currentUser == null) {
       return <Navigate to="/" />;
     }
