@@ -11,14 +11,12 @@ export const ForgotPassword = (props: Props) => {
 	const navigate = useNavigate()
 
 	const handleReset = async() => {
-		console.log('clicking?')
 		try {
 			await sendPasswordResetEmail(auth, loginemail).then((success: any) => {
 				alert('Password Reset Link sent Successfuly!');
 				navigate('/login')
 			})
 		} catch(err: any){
-			console.log('error?' + err)
 			if(err == 'FirebaseError: Firebase: Error (auth/invalid-email).') {
 				alert('That is not an email address')
 			}

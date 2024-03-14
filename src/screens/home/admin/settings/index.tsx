@@ -101,7 +101,6 @@ export default function Settings({}) {
 				const appcontroldata: appcontrol[] = []
 				const data = doc.data() as appcontrol
 				appcontroldata.push(data)
-				console.log('uyo',appcontroldata)
 				if(appcontroldata.length > 0){
 					setswitch(appcontroldata[0].disableLogin)
 					setinitialSwitchvalue(appcontroldata[0])
