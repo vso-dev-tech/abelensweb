@@ -85,14 +85,14 @@ export default function Inventory({}: Props) {
       // Convert Firestore Timestamp to JavaScript Date object
       const date = new Date(row.date?.seconds * 1000 + row.date?.nanoseconds / 1000000);
   
-      // Format the date as needed (e.g., toLocaleDateString)
       const dateString = date.toLocaleDateString('en-US').toLowerCase();
-  
+      const itemNameLowerCase = row.itemname?.toLowerCase();
+
       // Check if the date string includes the search query
       return dateString.includes(searchQuery.toLowerCase()) || 
-          (row.itemno?.toString().includes(searchQuery.toLowerCase())) || 
-          (row.itemname?.toString().includes(searchQuery.toLowerCase()));
-  });
+          row.itemno?.toString().includes(searchQuery.toLowerCase()) || 
+          (itemNameLowerCase && itemNameLowerCase.includes(searchQuery.toLowerCase()));
+      });
   
   
   
