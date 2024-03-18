@@ -3,13 +3,14 @@ import '../admin.css'
 import '../../../../index.css'
 import { collection, onSnapshot } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
-import { Card, CardContent, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
+import { Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
 import { flightdata, sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
 import firestore from '@firebase/firestore'
 import { BarChart } from '@mui/x-charts';
 import Form from './content/form';
+import { menu } from '../Inventory';
 type Props = {}
 
 interface Row {
@@ -23,6 +24,12 @@ interface Row {
     total: number,
     transId: number,
   }
+
+  const salestype = [
+    'All',
+    'Abelens Branch',
+    'Nepo Branch'
+  ]
  
 
 export default function Sales({}: Props) {
@@ -37,19 +44,35 @@ export default function Sales({}: Props) {
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
     const [rows, setrow] = React.useState<sales[]>([])
     const [sales, setsales] = React.useState<sales>()
-
+    const [branch, setbranch] = React.useState<string>('Nepo Branch')
+    const [branchsales, setbranchsales] = React.useState<string>('All')
+    const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
+    const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
     React.useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, 'sales'), (snapshot) => {
           const newData: sales[] = [];
+          const weeklydata: sales[] = [];
+          const branchinventorysales: sales[] = [];
           snapshot.forEach((doc) => {
             const data = doc.data() as sales
+            weeklydata.push(data)
+            if(data.branch == branch){
+              branchinventorysales.push(data)
+            }
+            if(branchsales != 'All'){
+            if(data.branch === branchsales)
             newData.push(data)
+            } else {
+              newData.push(data)
+            }
           });
           setrow(newData);
+          setbranchinventory(branchinventorysales)
+          setweeklytotalsales(weeklydata)
         });
     
         return () => unsubscribe();
-      }, []);
+      }, [branchsales, branch]);
     const handleRequestSort = (property: keyof Row) => {
       const isAsc = orderBy === property && order === 'asc';
       setOrderBy(property);
@@ -93,8 +116,8 @@ export default function Sales({}: Props) {
         console.log(transid)
     }
 
-    const aggregatedSales: { [key: string]: number } = {};
-      rows.forEach(item => {
+  const aggregatedSales: { [key: string]: number } = {};
+      weeklytotalsales.forEach(item => {
           const itemDate = new Date(item.date?.toDate()).toLocaleDateString();
           if (aggregatedSales[itemDate]) {
               aggregatedSales[itemDate] += item.total;
@@ -103,34 +126,66 @@ export default function Sales({}: Props) {
           }
       });
 
-// Extract dates and total sales for chart
-const currentDate = new Date();
-const sixDaysAgo = new Date(currentDate);
-sixDaysAgo.setDate(currentDate.getDate() - 6);
+  // Extract dates and total sales for chart
+  const currentDate = new Date();
+  const sixDaysAgo = new Date(currentDate);
+  sixDaysAgo.setDate(currentDate.getDate() - 6);
 
-const dates = [];
-const totalSales = [];
+  const dates = [];
+  const totalSales = [];
 
-for (let i = 0; i < 7; i++) {
-    const date = new Date(sixDaysAgo);
-    date.setDate(sixDaysAgo.getDate() + i);
-    const formattedDate = date.toLocaleDateString();
-    dates.push(formattedDate);
-    totalSales.push(aggregatedSales[formattedDate] || 0); // If there are no sales for a date, push 0
-}
+  for (let i = 0; i < 7; i++) {
+      const date = new Date(sixDaysAgo);
+      date.setDate(sixDaysAgo.getDate() + i);
+      const formattedDate = date.toLocaleDateString();
+      dates.push(formattedDate);
+      totalSales.push(aggregatedSales[formattedDate] || 0); 
+  }
+
+  //items
+
+  const branchaggregatedSales: { [key: string]: number } = {};
+      branchinventory.forEach(item => {
+          const itemDate = new Date(item.date?.toDate()).toLocaleDateString();
+          if (branchaggregatedSales[itemDate]) {
+            branchaggregatedSales[itemDate] += item.total;
+          } else {
+            branchaggregatedSales[itemDate] = item.total;
+          }
+      });
+
+  // Extract dates and total sales for chart
+  const branchcurrentDate = new Date();
+  const branchsixDaysAgo = new Date(branchcurrentDate);
+  branchsixDaysAgo.setDate(branchcurrentDate.getDate() - 6);
+
+  const branchdates = [];
+  const branchtotalSales = [];
+
+  for (let i = 0; i < 7; i++) {
+      const branchdate = new Date(branchsixDaysAgo);
+      branchdate.setDate(branchsixDaysAgo.getDate() + i);
+      const branchformattedDate = branchdate.toLocaleDateString();
+      branchdates.push(branchformattedDate);
+      branchtotalSales.push(branchaggregatedSales[branchformattedDate] || 0); 
+  }
 
   return (
     <div className='container'>
-        <div style = {{flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100vh', justifyContent: 'center', alignItems: 'flex-start'}}>
-        <h1>WEEKLY SALES</h1>
-        <Card>
+        <div style = {{ overflowY: 'auto', flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100%', justifyContent: 'center', alignItems: 'flex-start'}}>
+        
+        <div style={{ width: '96%', minHeight: '100%', marginTop: 200}}>
+        <div style={{flexDirection: 'row', display: 'flex', justifyContent: 'flex-start'}} >
+        
+        <Card sx = {{marginRight: 10}}>
           <CardContent>
+          <h1 style = {{paddingLeft: 10}}>WEEKLY OVERALL SALES</h1>
           <BarChart
             xAxis={[{ scaleType: 'band', 
             data: dates
             }]}
             width={750}
-            height={250}
+            height={300}
             slotProps={{
               legend: {
                 direction: 'row',
@@ -143,7 +198,50 @@ for (let i = 0; i < 7; i++) {
           />
           </CardContent>
         </Card>
-        <h1>REAL-TIME SALES</h1>
+        <Card>
+          <CardContent>
+          <h1 style = {{paddingLeft: 10}}>WEEKLY BRANCH SALES</h1>
+          <p style = {{paddingLeft: 40}}>SELECTED BRANCH: </p>
+          <Select 
+            defaultValue={'Nepo Branch'}
+            value = {branch}
+            onChange={(e) => setbranch(e.target.value)}
+            sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700, marginLeft: 5}}
+            >
+              <MenuItem value = {'Nepo Branch'} key={1}>Nepo Branch</MenuItem>
+              <MenuItem value = {'Abelens Branch'}  key={2}>Abelens Branch</MenuItem>
+          </Select>
+          <BarChart
+            xAxis={[{ scaleType: 'band', 
+            data: branchdates
+            }]}
+            
+            width={750}
+            height={200}
+            slotProps={{
+              legend: {
+                direction: 'row',
+                position: { vertical: 'bottom', horizontal: 'middle' },
+              },
+            }}
+            series={[
+              { data: branchtotalSales, color: '#30BE7A'},
+            ]}
+          />
+          </CardContent>
+        </Card>
+        </div>
+        <h1>REAL-TIME SALE</h1>
+        <Select 
+            defaultValue={'All'}
+            value = {branchsales}
+            onChange={(e) => setbranchsales(e.target.value)}
+            sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700, marginRight: 1}}
+            >
+             {salestype.map((item, index) => (
+              <MenuItem value = {item} key = {index}>{item}</MenuItem>
+             ))}
+        </Select>
         <TextField
           label="Search"
           variant="outlined"
@@ -152,7 +250,7 @@ for (let i = 0; i < 7; i++) {
           style={{ marginBottom: 20, width: '30%', backgroundColor: '#fff', borderRadius: 5 }}
           placeholder='Search Table'
         />
-        <TableContainer component={Paper} elevation={3} sx={{width: '96%'}}>
+        <TableContainer component={Paper} elevation={3} style={{maxWidth: 1650}}>
         <Table>
             <TableHead sx={{backgroundColor: '#30BE7A'}}>
               <TableRow>
@@ -263,6 +361,10 @@ for (let i = 0; i < 7; i++) {
             />
           </div>
         </TableContainer>
+        <br/>
+        <br/>
+        </div>
+       
         </div>
         <Modal
             open = {isModalOpen}

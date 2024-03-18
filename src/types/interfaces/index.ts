@@ -53,6 +53,7 @@ export interface inventory {
   unitprice: number,
   unitsales: number,
   branch: string,
+  supplier: string,
 }
 
 export interface flightdata {
