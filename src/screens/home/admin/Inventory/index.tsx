@@ -1,7 +1,7 @@
 import React from 'react'
 import '../admin.css'
 import '../../../../index.css'
-import { collection, getDocs } from '@firebase/firestore';
+import { collection, getDocs, query, where, getDoc, doc } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
 import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
 import { flightdata, inventory, sales } from 'types/interfaces';
@@ -43,29 +43,31 @@ export default function Inventory({}: Props) {
     const [orderBy, setOrderBy] = React.useState<keyof inventory>('docId');
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
     const [rows, setrow] = React.useState<inventory[]>([])
-    const [branch, setbranch] = React.useState<string>('manilajd')
+    const [supplier, setsupplier] = React.useState<string>('manilajd')
+    const [branch, setbranch] = React.useState<string>('Abelens')
     React.useEffect(() => {
-      const fetchData = async () => {
-          try {
-              const querySnapshot = await getDocs(collection(db, 'inventory'));
-              const newData: inventory[] = [];
-              const itemNumbers: Set<number> = new Set(); // Set to store unique item numbers
-              querySnapshot.forEach((doc) => {
-                  const data = doc.data() as inventory;
-                  if (data.branch === branch && !itemNumbers.has(data.itemno)) {
-                      newData.push(data);
-                      itemNumbers.add(data.itemno);
-                  }
-              });
-              setrow(newData);
-          } catch (error) {
-              console.error('Error fetching data:', error);
-          }
-      };
+     
   
       fetchData();
+    }, [supplier, branch]);
   
-  }, [branch]);
+  
+    const fetchData = async () => {
+      try {
+        const docRef = doc(db, branch, supplier);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data() as any;
+            console.log(data.data);
+            setrow(data.data)
+        } else {
+            console.log('Document does not exist!');
+            alert('No data exists with selected supplier')
+        }
+      } catch (error) {
+          console.error('Error fetching data:', error);
+      }
+  };
     const handleRequestSort = (property: keyof inventory) => {
       const isAsc = orderBy === property && order === 'asc';
       setOrderBy(property);
@@ -112,12 +114,23 @@ export default function Inventory({}: Props) {
   return (
     <div className='container'>
         <div style = {{flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100vh', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: '#d9d9d9'}}>
-        <h1>INVENTORY</h1>
+        <h1>BRANCH INVENTORY</h1>
         <p>SELECTED BRANCH: </p>
         <Select 
-        defaultValue={'MANILAJD'}
+        defaultValue={'Abelens Branch'}
         value = {branch}
         onChange={(e) => setbranch(e.target.value)}
+        sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
+        >
+           <MenuItem value = {'Abelens'} key = {0} >Abelens Branch</MenuItem>
+           <MenuItem value = {'Nepo'} key ={1}>Nepo Branch</MenuItem>
+
+        </Select>
+        <p>SELECTED SUPPLIER: </p>
+        <Select 
+        defaultValue={'MANILAJD'}
+        value = {supplier}
+        onChange={(e) => setsupplier(e.target.value)}
         sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
         >
             {menu.map((item, index) => (<MenuItem value = {item} key={index}>{item}
@@ -168,11 +181,11 @@ export default function Inventory({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                     style={{
-                      color: orderBy === 'stocks' ? '#000' : '#fff'
+                      color: orderBy === 'itemname' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'stocks'}
-                    direction={orderBy === 'stocks' ? order : 'asc'}
-                    onClick={() => handleRequestSort('stocks')}
+                    active={orderBy === 'itemname'}
+                    direction={orderBy === 'itemname' ? order : 'asc'}
+                    onClick={() => handleRequestSort('itemname')}
                   >
                     Item Name
                   </TableSortLabel>
@@ -181,11 +194,11 @@ export default function Inventory({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                     style={{
-                      color: orderBy === 'itemname' ? '#000' : '#fff'
+                      color: orderBy === 'stocks' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'itemname'}
-                    direction={orderBy === 'itemname' ? order : 'asc'}
-                    onClick={() => handleRequestSort('itemname')}
+                    active={orderBy === 'stocks'}
+                    direction={orderBy === 'stocks' ? order : 'asc'}
+                    onClick={() => handleRequestSort('stocks')}
                   >
                     Stocks
                   </TableSortLabel>
@@ -269,7 +282,7 @@ export default function Inventory({}: Props) {
             
         >
 					<>
-						<Form onClick={() => setisAddModalOpen(false)} modalData = {modalData} />
+						<Form onSubmit={() => fetchData()} onClick={() =>{ setisAddModalOpen(false); fetchData()}} modalData = {modalData} />
             <FontAwesomeIcon onClick={() => setisAddModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
 					</	>
         </Modal>
