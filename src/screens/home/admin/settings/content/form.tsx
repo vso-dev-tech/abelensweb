@@ -3,13 +3,14 @@ import React, { useContext, useState } from 'react'
 import FormHeader from 'screens/components/FormHeader';
 import { appuserdata, inventory } from 'types/interfaces';
 import {Timestamp} from "firebase/firestore";
+import {auth}  from '../../../../../firebase/index';
 import { AuthContext } from 'auth';
 import { collection, onSnapshot, doc, setDoc } from '@firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import { generateRandomKey } from '../../../../../firebase/function';
+import {getAuth, sendPasswordResetEmail, createUserWithEmailAndPassword } from '@firebase/auth'
 type Props = {
     modalData?: appuserdata |  null | undefined
-
 }
 
 const menu: string[] = [
@@ -21,7 +22,9 @@ const menu: string[] = [
 	'kenns',
 ]
 
-export default function Form({ modalData}: Props) {
+
+
+export default function Form({ modalData }: Props) {
 
 
 //     active: boolean,
@@ -35,39 +38,70 @@ export default function Form({ modalData}: Props) {
     const {currentUser} = useContext(AuthContext)
     const [opensuccess, setopensuccess] = React.useState<boolean>(false)
     const [submitted, setsubmitted] = React.useState<boolean>(false)
-    const id = generateRandomKey(20)
     const [form, setform] = React.useState<appuserdata>({
         active: modalData?.active || true,
-        branch: modalData?.branch || '',
-        email:modalData?.branch || '',
+        branch: modalData?.branch || 'Abelens',
+        email:modalData?.email || '',
         lastLoggedIn:modalData?.lastLoggedIn || Timestamp.fromDate(new Date()),
         restrict:modalData?.restrict || false,
-        staff:modalData?.staff || '',
+        username:modalData?.username || '',
         storeid:modalData?.storeid || '',
-        uid:modalData?.uid || id,
+        uid:modalData?.uid || '',
     })
     const submit = async() => {
 			try {
 				
+				
+				const auth = getAuth()
+
+				if(form.uid !== ''){
 				const formRef = doc(db, 'user', form.uid)
 				await setDoc(formRef, {
-					active: form.restrict,
-                    branch: form.branch,
-                    email:form.email,
-                    lastLoggedIn:form.lastLoggedIn,
-                    restrict: form.restrict,
-                    staff: form.staff,
-                    storeid:form.storeid,
-                    uid: form.uid,
-			}).then((res) => {
-					alert('Successfully added to Staff!')
-				})
-				
-
+					active: form.active,
+					branch: form.branch,
+					email:form.email,
+					lastLoggedIn:form.lastLoggedIn,
+					restrict: form.restrict,
+					username: form.username,
+					storeid:form.storeid,
+					uid: form.uid,
+			})
+			alert('Successfully added to Staff!')
+			} else {
+					const { user } = await createUserWithEmailAndPassword(auth, form.email, 'Water@1234');
+					console.log('eto ba')
+					console.log(user)
+					console.log('error ba')
+					const formRef = doc(db, 'user', user.uid)
+					await setDoc(formRef, {
+						active: form.active,
+						branch: form.branch,
+						email:form.email,
+						lastLoggedIn:form.lastLoggedIn,
+						restrict: form.restrict,
+						username: form.username,
+						storeid:form.storeid,
+						uid:  user.uid,
+						type: 'staff',
+				}).then(async(res) => {
+						alert('Successfully added to Staff!')
+					})
+			}
+	
 			} catch (err) {
+				console.log('nag error po')
 				console.log(err)
+				console.log('something went wrong ba')
 			}
     }
+		const sendResetLink = async() => {
+			const auth = getAuth()
+			await sendPasswordResetEmail(auth, form.email).then((res) =>{
+				console.log(res)
+				alert(`Successfully sent password reset link to ${form.email}`)
+			})
+
+		}
 
   return (
 					<Card sx={{margin: 1, width: '50%', flexDirection: 'column', display: 'flex'}}>
@@ -76,22 +110,20 @@ export default function Form({ modalData}: Props) {
 						<h1>
 							ADD/EDIT STAFF
 						</h1>
-						<h4>USER ID: {form.uid}</h4>
+						{form.uid != '' && <h4>USER ID: {form.uid}</h4>}
+						{form.uid != '' && <Button onClick={sendResetLink} sx={{alignItems: 'center', justifyContent: 'flex-start'}} >SEND RESET PASSWORD LINK</Button>}
 							<Stack sx={{width: '100%'}}  direction="column" spacing={2} marginTop={2}>
 									<FormHeader inputLabel = 'Branch' />
 									<Select 
-										defaultValue={'manilajd'}
+										defaultValue={'Abelens'}
 										value = {form.branch}
 										onChange={(e) => setform((prev: appuserdata) => ({
 											...prev,
 											branch: (e.target.value),
 										}))}
 										>
-											  {menu.map((item, index) => (
-													<MenuItem value = {item} key={index}>
-														{item}
-													</MenuItem>
-												))}
+											<MenuItem value = {'Abelens'} key = {0} >Abelens Branch</MenuItem>
+           									<MenuItem value = {'Nepo'} key ={1}>Nepo Branch</MenuItem>
 												
 										</Select>
 							</Stack>
@@ -101,13 +133,13 @@ export default function Form({ modalData}: Props) {
 											sx={{width: '100%'}}
 											type='text'
 											placeholder='Enter Staff Name'
-											value={form.staff}
+											value={form.username}
 											onChange={(e) => setform((prev: appuserdata) => ({
                                                 ...prev,
-                                                staff: e.target.value,
+                                                username: e.target.value,
                                               }))}
-											error = {submitted && form.staff.length === 0}
-											helperText = {submitted && form.staff.length === 0 && 'Field must not be empty'}
+											error = {submitted && form.username.length === 0}
+											helperText = {submitted && form.username.length === 0 && 'Field must not be empty'}
 									/>
 							</Stack>
 							<Stack sx={{width: '100%'}}  direction="column" spacing={2} marginTop={2}>
@@ -134,7 +166,7 @@ export default function Form({ modalData}: Props) {
 											value={form.storeid}
 											onChange={(e) => setform((prev: appuserdata) => ({
                                                 ...prev,
-                                                unitprice: e.target.value,
+                                                storeid: e.target.value,
                                               }))}
 											error = {submitted && form.storeid.length === 0}
 											helperText = {submitted && form.storeid.length === 0 && 'Field must not be empty'}
@@ -181,7 +213,7 @@ export default function Form({ modalData}: Props) {
 										</Select>
 							</Stack>
 						<Stack justifyContent={'center'}  alignItems={'center'} direction="column" spacing={2} marginTop={2}>
-							<Button sx={{backgroundColor: '#30BE7A', fontWeight: 'bold'}} onClick={submit} fullWidth variant='contained'>SUBMIT</Button>
+							<Button disabled = {currentUser?.type !== 'admin'} sx={{backgroundColor: '#30BE7A', fontWeight: 'bold'}} onClick={submit} fullWidth variant='contained'>SUBMIT</Button>
 						</Stack>
 					</CardContent>
         </Card>

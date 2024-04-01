@@ -31,7 +31,7 @@ interface Row {
     'kenns',
   ]
 
-export default function Inventory({}: Props) {
+export default function StaffInventory({}: Props) {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
@@ -229,15 +229,6 @@ export default function Inventory({}: Props) {
                     Unit Price
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                <TableSortLabel 
-                  disabled  
-                  className='headerCell'
-                >
-                  Action
-                </TableSortLabel>
-                 
-                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -252,9 +243,6 @@ export default function Inventory({}: Props) {
 									<TableCell>{row.stocks}</TableCell>
                   <TableCell>{row.unitsales}</TableCell>
                   <TableCell>₱{row.unitprice}</TableCell>
-                  <TableCell sx={{cursor: 'pointer'}} onClick={() => handleView(row)}>
-                  <FontAwesomeIcon icon={faEye} width={50} height={50} />
-                  </TableCell> 
                 </TableRow>
               ))}
             </TableBody>
@@ -271,21 +259,8 @@ export default function Inventory({}: Props) {
             />
           </div>
         </TableContainer>
-				  <Button variant='contained'  onClick={() => setisAddModalOpen(true)}  sx={{height: 150, width: 150, background: '#fff', flexDirection:'column', color: '#000', fontWeight: 'bold', fontSize: 12}}><FontAwesomeIcon icon={faArchive} color='#30BE7A' style={{width: 65, height: 65}} />ADD INVENTORY</Button>
 					</div>
         </div>
-				<Modal
-            component={'feDropShadow'}
-            open = {isAddModalOpen}
-            onClose={() => setModalData(null)}
-            sx={{overflowY: 'scroll'}}
-            
-        >
-					<>
-						<Form onSubmit={() => fetchData()} onClick={() =>{ setisAddModalOpen(false); fetchData()}} modalData = {modalData} />
-            <FontAwesomeIcon onClick={() => setisAddModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
-					</	>
-        </Modal>
     </div>
   )
 }

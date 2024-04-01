@@ -1,14 +1,18 @@
-import React from 'react'
-import '../admin.css'
-import '../../../../index.css'
+import React, { useContext } from 'react'
+import '../../admin.css'
+import '../../../../../index.css'
 import { collection, getDocs, query, where, getDoc, doc } from '@firebase/firestore';
-import {db} from '../../../../firebase/index'
+import {db} from '../../../../../firebase/index'
 import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
 import { flightdata, inventory, sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
-import Form from './content/form';
-type Props = {}
+import { AuthContext } from 'auth';
+type Props = {
+
+  data: (e: inventory) => void,
+
+}
 
 interface Row {
     branch: string,
@@ -31,15 +35,16 @@ interface Row {
     'kenns',
   ]
 
-export default function Inventory({}: Props) {
+export default function SalesInventory({data}: Props) {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
-    const [modalData, setModalData] = React.useState<inventory | null | undefined>()
+    const [modalData, setModalData] = React.useState<inventory | null | undefined>();
+    const {currentUser} = useContext(AuthContext)
 		const [isAddModalOpen, setisAddModalOpen] = React.useState<boolean>(false)
     const [searchQuery, setSearchQuery] = React.useState('');
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5); // You can adjust the number of rows per page here
+    const [rowsPerPage, setRowsPerPage] = React.useState(12); // You can adjust the number of rows per page here
     const [orderBy, setOrderBy] = React.useState<keyof inventory>('docId');
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
     const [rows, setrow] = React.useState<inventory[]>([])
@@ -54,7 +59,7 @@ export default function Inventory({}: Props) {
   
     const fetchData = async () => {
       try {
-        const docRef = doc(db, branch, supplier);
+        const docRef = doc(db, currentUser?.branch || '', supplier);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data() as any;
@@ -105,48 +110,45 @@ export default function Inventory({}: Props) {
       return 0;
     });
 
-    const handleView = (item: inventory) => {
-        setisAddModalOpen(true)
-        setModalData(item)
+    const selectItem = (id: inventory, stocks: number) => {
+      if(stocks <= 5) {
+        alert('Please inform the main office for all low stock items')
+      }
+      if(stocks !== 0){
+        data(id)
+      } else {
+        alert('You have no remaining stock of this item')
+        return
+      }
     }
+  
 
 
   return (
-    <div className='container'>
-        <div style = {{flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100vh', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: '#d9d9d9'}}>
-        <h1>BRANCH INVENTORY</h1>
-        <p>SELECTED BRANCH: </p>
-        <Select 
-        defaultValue={'Abelens Branch'}
-        value = {branch}
-        onChange={(e) => setbranch(e.target.value)}
-        sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
-        >
-           <MenuItem value = {'Abelens'} key = {0} >Abelens Branch</MenuItem>
-           <MenuItem value = {'Nepo'} key ={1}>Nepo Branch</MenuItem>
-
-        </Select>
+    <div style = {{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginTop: 30, flexDirection: 'column',}}>
         <p>SELECTED SUPPLIER: </p>
-        <Select 
-        defaultValue={'MANILAJD'}
-        value = {supplier}
-        onChange={(e) => setsupplier(e.target.value)}
-        sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
-        >
-            {menu.map((item, index) => (<MenuItem value = {item} key={index}>{item}
-            </MenuItem>
-            ))}
-        </Select>
-        <TextField
-          label="Search"
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ marginBottom: 20, width: '30%', backgroundColor: '#fff', borderRadius: 5 }}
-          placeholder='Search Table'
-        />
+        <div style={{display:'flex', justifyContent: 'flex-start', alignItems: 'flex-start', flexDirection: 'row', width: '95%'}}>
+          <Select 
+          defaultValue={'MANILAJD'}
+          value = {supplier}
+          onChange={(e) => setsupplier(e.target.value)}
+          sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
+          >
+              {menu.map((item, index) => (<MenuItem value = {item} key={index}>{item}
+              </MenuItem>
+              ))}
+          </Select>
+          <TextField
+            label="Search"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ marginBottom: 20, width: '100%', backgroundColor: '#fff', borderRadius: 5 }}
+            placeholder='Search Table'
+          />
+        </div>
         <div style={{overflow: 'hidden', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '95%', height: '100vh'}} >
-        <TableContainer component={Paper} elevation={3} sx={{width: '85%', maxHeight: '95%'}}>
+        <TableContainer component={Paper} sx={{width: 800,outline: 'none', '&:focus': { border: 'none' }}}>
         <Table>
             <TableHead sx={{backgroundColor: '#30BE7A'}}>
               <TableRow>
@@ -207,19 +209,6 @@ export default function Inventory({}: Props) {
                   <TableSortLabel
                    className='headerCell'
                     style={{
-                      color: orderBy === 'unitsales' ? '#000' : '#fff'
-                    }}
-                    active={orderBy === 'unitsales'}
-                    direction={orderBy === 'unitsales' ? order : 'asc'}
-                    onClick={() => handleRequestSort('unitsales')}
-                  >
-                    Unit Sales
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                   className='headerCell'
-                    style={{
                     color: orderBy === 'unitprice' ? '#000' : '#fff'
                     }}
                     active={orderBy === 'unitprice'}
@@ -229,15 +218,6 @@ export default function Inventory({}: Props) {
                     Unit Price
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>
-                <TableSortLabel 
-                  disabled  
-                  className='headerCell'
-                >
-                  Action
-                </TableSortLabel>
-                 
-                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -245,23 +225,20 @@ export default function Inventory({}: Props) {
                 ? sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 : sortedRows
               ).map((row, index) => (
-                <TableRow key={index}>
+                <TableRow sx={{cursor: 'pointer', height: 50, backgroundColor: row.stocks == 0 ? 'pink' : index % 2 ? '#d9d9d9' : '#fff'}} onClick = {() => {selectItem(row, row.stocks)}}key={index}>
+                  
                   <TableCell>{new Date(row.date?.toDate()).toLocaleDateString() || ''}</TableCell>
-                  <TableCell>{row.itemno}</TableCell>
-                  <TableCell>{row.itemname}</TableCell>
-									<TableCell>{row.stocks}</TableCell>
-                  <TableCell>{row.unitsales}</TableCell>
-                  <TableCell>₱{row.unitprice}</TableCell>
-                  <TableCell sx={{cursor: 'pointer'}} onClick={() => handleView(row)}>
-                  <FontAwesomeIcon icon={faEye} width={50} height={50} />
-                  </TableCell> 
+                  <TableCell sx={{height: 10}}>{row.itemno}</TableCell>
+                  <TableCell sx={{height: 10, width: '100%'}}>  {row.itemname.length > 25 ? `${row.itemname.substring(0, 22)}...` : row.itemname}</TableCell>
+									<TableCell sx={{height: 10}}>{row.stocks}</TableCell>
+                  <TableCell sx={{height: 10}}>₱{row.unitprice}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
           <div style={{justifyContent: 'flex-start', alignItems: 'flex-start', display: 'flex' }}> {/* Adjust margin as needed */}
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25]} // You can adjust the options here
+              rowsPerPageOptions={[20]} // You can adjust the options here
               component="div"
               count={sortedRows.length}
               rowsPerPage={rowsPerPage}
@@ -271,21 +248,7 @@ export default function Inventory({}: Props) {
             />
           </div>
         </TableContainer>
-				  <Button variant='contained'  onClick={() => setisAddModalOpen(true)}  sx={{height: 150, width: 150, background: '#fff', flexDirection:'column', color: '#000', fontWeight: 'bold', fontSize: 12}}><FontAwesomeIcon icon={faArchive} color='#30BE7A' style={{width: 65, height: 65}} />ADD INVENTORY</Button>
 					</div>
-        </div>
-				<Modal
-            component={'feDropShadow'}
-            open = {isAddModalOpen}
-            onClose={() => setModalData(null)}
-            sx={{overflowY: 'scroll'}}
-            
-        >
-					<>
-						<Form onSubmit={() => fetchData()} onClick={() =>{ setisAddModalOpen(false); fetchData()}} modalData = {modalData} />
-            <FontAwesomeIcon onClick={() => setisAddModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
-					</	>
-        </Modal>
     </div>
   )
 }

@@ -16,7 +16,7 @@ export interface appuserdata {
   email: string,
   lastLoggedIn: firestore.Timestamp,
   restrict: boolean,
-  staff: string,
+  username: string,
   storeid: string,
   uid: string,
 }
@@ -53,6 +53,8 @@ export interface inventory {
   unitprice: number,
   unitsales: number,
   branch: string,
+  supplier: string,
+  data?: any,
 }
 
 export interface flightdata {
@@ -205,6 +207,7 @@ export interface logindata {
   email: string,
   username: string,
   type: string,
+  branch: string,
   
 }
 

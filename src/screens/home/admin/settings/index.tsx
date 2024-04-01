@@ -1,8 +1,8 @@
 import { Button, Card, CardContent, CircularProgress, Input, MenuItem, Modal, Select, Stack, Switch, TextField, Typography } from '@mui/material'
-import { Timestamp, addDoc, collection, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { Timestamp, addDoc, collection, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { generateRandomKey } from '../../../../firebase/function';
 import React, { useState } from 'react'
-import { appuserdata, inventory } from 'types/interfaces';
+import { appuserdata, flightdata, inventory } from 'types/interfaces';
 import Papa from 'papaparse';
 import { db } from '../../../../firebase/index';
 import { menu } from '../Inventory';
@@ -27,7 +27,8 @@ export default function Settings({}) {
 	const [opencreateaccount, setopencreateAccount] = useState<boolean>(false)
 	const [modalData, setModalData] = useState<appuserdata>()
 	const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-	const [branch, setbranch] = useState('manilajd')
+	const [branch, setbranch] = useState('Abelens');
+	const [editbranch, seteditbranch] = useState('Abelens');
   const handleFileChange = (e: any) => {
 	if (e.target.files && e.target.files.length > 0) {
 	  const fileData = e.target.files[0];
@@ -53,27 +54,41 @@ export default function Settings({}) {
 		alert('CSV File empty');
 		return;
 	  }
-	  const docRef = collection(db, 'inventory')
   
-		csvData.map(async (item: inventory, index: number) => {
-			const id = generateRandomKey(25);
-			const newItem = {
-					...item, 
-					active: true, 
-					date: Timestamp.fromDate(new Date()),
-					docId: id,
-					itemname: item.itemname as string ?? "", 
-					itemno: +item.itemno ?? 0, 
-					stocks: +item.stocks ?? 0, 
-					unitprice: +item.unitprice ?? 0,
-					unitsales: +item.unitsales ?? 0, 
-					branch: item.branch as string ?? "",
-			};
-			await addDoc(docRef, newItem);
-	});
+	  const groupedData: { [branchName: string]: inventory[] } = {};
 
-          console.log('Data uploaded successfully');
-					setuploading(false)
+    csvData.forEach((item: inventory) => {
+      const branchName = item.branch as string || "Unknown";
+	  const supplierName = item.supplier as string || "Unknown";
+      if (!groupedData[supplierName]) {
+        groupedData[supplierName] = [];
+      }
+      const id = generateRandomKey(25);
+      const newItem: inventory = {
+        ...item,
+        active: true,
+        date: Timestamp.fromDate(new Date()),
+        docId: id,
+        itemname: item.itemname as string ?? "",
+        itemno: +item.itemno ?? 0,
+        stocks: +item.stocks ?? 0,
+        unitprice: +item.unitprice ?? 0,
+        unitsales: +item.unitsales ?? 0,
+        supplier: supplierName,
+		branch: branchName
+      };
+      groupedData[supplierName].push(newItem);
+    });
+
+	const promises = Object.keys(groupedData).map(async (branchName) => {
+		const docRef = doc(db, branch, branchName);
+		await setDoc(docRef, { data: groupedData[branchName] });
+	  });
+	  await Promise.all(promises).then(() => {
+		setuploading(false)
+	  })
+
+
     } catch (error) {
       console.error('Error:', error);
 			setuploading(false)
@@ -82,18 +97,18 @@ export default function Settings({}) {
 
   React.useEffect(() => {
 	const unsubscribe = onSnapshot(collection(db, 'user'), (snapshot) => {
+		
+		const userdata: appuserdata[] = []
 		snapshot.forEach((doc) => {
-			const userdata: appuserdata[] = []
 			const data = doc.data() as appuserdata
-			if (data.branch === branch) {
-        userdata.push(data);
-      }
-			
-			setuserdata(userdata)
+			if (data.branch === editbranch){
+				userdata.push(data);
+			}
 		})
+		setuserdata(userdata)
 	});
 	return () => unsubscribe();
-  },[branch])
+  	},[editbranch])
 
 	React.useEffect(() => {
 		const unsubscribe = onSnapshot(collection(db, 'appcontrol'), (snapshot) => {
@@ -130,8 +145,8 @@ export default function Settings({}) {
 
   return (
     <div className='container'>
-    <div style = {{flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100vh', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: '#d9d9d9'}}>
-    <Card sx={{margin: 1, marginTop: 5, width: '50%', flexDirection: 'column', display: 'flex',}}>
+    <div style = {{flexDirection: 'column', marginLeft: 300, display: 'flex', width: '100%', height: '100vh', justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: '#d9d9d9'}}>
+    <Card sx={{margin: 1, marginTop: 5, width: 750, flexDirection: 'column', display: 'flex', overflowY: 'auto'}}>
         <CardContent sx = {{padding: 5}}>
             <h1>ADMIN SETTINGS</h1>
             <Stack>
@@ -139,6 +154,17 @@ export default function Settings({}) {
 								UPLOAD MASS INVENTORY ITEMS
 							</h4>
 							<p>This might replace all items in your inventory</p>
+							<p>SELECTED BRANCH: </p>
+							<Select 
+							defaultValue={'Abelens Branch'}
+							value = {branch}
+							onChange={(e) => setbranch(e.target.value)}
+							sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
+							>
+							<MenuItem value = {'Abelens'} key = {0} >Abelens Branch</MenuItem>
+							<MenuItem value = {'Nepo'} key ={1}>Nepo Branch</MenuItem>
+
+							</Select>
 							<TextField
 								type = 'file'
 								inputProps={{ accept: 'text/csv' }}
@@ -206,13 +232,13 @@ export default function Settings({}) {
 							<h4 style = {{marginBlockEnd: 0}}>APP USER SETTINGS</h4>
 							<p>Edit, Add, or Delete Users per branch</p>
 							<Select 
-								defaultValue={'manilajd'}
+								defaultValue={'Abelens'}
+								value = {editbranch}
 								sx={{width: 200, marginBottom: 3, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
-								onChange={(e) => setbranch(e.target.value)}
+								onChange={(e) => seteditbranch(e.target.value)}
 							>
-									{menu.map((item, index) => (<MenuItem value = {item} key={index}>{item.toUpperCase()}
-									</MenuItem>
-									))}
+									<MenuItem value = {'Abelens'} key = {0} >Abelens Branch</MenuItem>
+									<MenuItem value = {'Nepo'} key ={1}>Nepo Branch</MenuItem>
 						</Select>
 						<Button onClick={() => setopenUserModal(true)} variant='contained' sx = {{width: '30%', backgroundColor: '#30BE7A', fontWeight: 'bolder'}}>View Users</Button>
 						</Stack>
