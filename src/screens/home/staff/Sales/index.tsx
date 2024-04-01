@@ -3,14 +3,16 @@ import '../admin.css'
 import '../../../../index.css'
 import { collection, onSnapshot } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
-import { Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
+import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles, useMediaQuery, useTheme } from '@mui/material'
 import { flightdata, sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
 import firestore from '@firebase/firestore'
 import { BarChart } from '@mui/x-charts';
 import Form from './content/form';
 import { menu } from '../Inventory';
+import AddSales from './content/addsales';
+import { AuthContext } from 'auth';
 type Props = {}
 
 interface Row {
@@ -32,10 +34,11 @@ interface Row {
   ]
  
 
-export default function Sales({}: Props) {
+export default function StaffSales({}: Props) {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
+    const [isAddModalOpen, setIsAddModalOpen] = React.useState<boolean>(false);
     const [transid, settransid] = React.useState<number | null>(null)
     const [searchQuery, setSearchQuery] = React.useState('');
     const [page, setPage] = React.useState(0);
@@ -44,10 +47,13 @@ export default function Sales({}: Props) {
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
     const [rows, setrow] = React.useState<sales[]>([])
     const [sales, setsales] = React.useState<sales>()
-    const [branch, setbranch] = React.useState<string>('Nepo')
+    
+    const {currentUser} =  React.useContext(AuthContext)
+    const [branch, setbranch] = React.useState<string>(currentUser?.branch || 'Abelens')
     const [branchsales, setbranchsales] = React.useState<string>('All')
     const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
     const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
+    
     React.useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, 'sales'), (snapshot) => {
           const newData: sales[] = [];
@@ -169,6 +175,32 @@ export default function Sales({}: Props) {
       branchdates.push(branchformattedDate);
       branchtotalSales.push(branchaggregatedSales[branchformattedDate] || 0); 
   }
+  const [screenWidth, setScreenWidth] = React.useState(window.innerWidth); // Initial screen width
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            setScreenWidth(window.innerWidth); // Update screen width on resize
+        };
+
+        window.addEventListener('resize', handleResize); // Add resize event listener
+
+        return () => {
+            window.removeEventListener('resize', handleResize); // Cleanup event listener
+        };
+    }, []);
+
+    let chartWidth = 750; // Default width for screen size above 1700px
+    let chartHeight = 300;
+    let chartHeight1 = 350;
+    if (screenWidth <= 1700 && screenWidth > 1463) {
+        chartWidth = 550; // Set width to 550 for screen size 1700px and below
+        chartHeight = 200;
+        chartHeight1 = 300
+    } else if (screenWidth <= 1463) {
+        chartWidth = 400;
+        chartHeight = 200;
+        chartHeight1 = 350;
+    }
 
   return (
     <div className='container'>
@@ -181,11 +213,11 @@ export default function Sales({}: Props) {
           <CardContent>
           <h1 style = {{paddingLeft: 10}}>WEEKLY OVERALL SALES</h1>
           <BarChart
+             width={chartWidth}
+             height={chartHeight1}
             xAxis={[{ scaleType: 'band', 
             data: dates
             }]}
-            width={750}
-            height={300}
             slotProps={{
               legend: {
                 direction: 'row',
@@ -216,8 +248,8 @@ export default function Sales({}: Props) {
             data: branchdates
             }]}
             
-            width={750}
-            height={200}
+            width={chartWidth}
+            height={chartHeight}
             slotProps={{
               legend: {
                 direction: 'row',
@@ -251,6 +283,7 @@ export default function Sales({}: Props) {
           style={{ marginBottom: 20, width: '30%', backgroundColor: '#fff', borderRadius: 5 }}
           placeholder='Search Table'
         />
+        <div style={{overflow: 'hidden', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '95%', height: '100vh'}} >
         <TableContainer component={Paper} elevation={3} style={{maxWidth: 1650}}>
         <Table>
             <TableHead sx={{backgroundColor: '#30BE7A'}}>
@@ -363,20 +396,34 @@ export default function Sales({}: Props) {
           </div>
         </TableContainer>
         <br/>
+        <Button onClick={() => setIsAddModalOpen(true)} variant='contained' sx={{height: 150, width: 150, background: '#fff', flexDirection:'column', color: '#000', fontWeight: 'bold', fontSize: 12, marginLeft: 5}}><FontAwesomeIcon icon={faCartPlus} color='#30BE7A' style={{width: 65, height: 65}} />ADD SALES</Button>
+        </div>
+        
         <br/>
         </div>
-       
+
         </div>
+        <Modal
+            open = {isAddModalOpen}
+            onClose={() => {settransid(null); setIsAddModalOpen(false)}}
+            sx={{overflowY: 'scroll'}}
+            
+        >
+          <>
+            <AddSales/>
+            <FontAwesomeIcon onClick={() => setIsAddModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
+          </>
+        </Modal>
         <Modal
             open = {isModalOpen}
             onClose={() => {settransid(null); setIsModalOpen(false)}}
             sx={{overflowY: 'scroll'}}
             
         >
-            <>
-                <Form transId={transid} sales={sales}/>
+          <>
+            <Form transId={transid} sales={sales}/>
             <FontAwesomeIcon onClick={() => setIsModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
-            </>
+          </>
         </Modal>
     </div>
   )

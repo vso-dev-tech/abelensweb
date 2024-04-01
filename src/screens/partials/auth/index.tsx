@@ -1,24 +1,17 @@
-import { collection, getDocs, addDoc } from '@firebase/firestore';
+import { collection, getDocs } from '@firebase/firestore';
 import { auth, db } from '../../../firebase';
 import React, { useContext, useEffect, useState } from 'react'
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../styles/auth.css'
 import { AuthContext } from 'auth';
-import { codedata, logindata } from 'types/interfaces';
-import { Auth2FA, LoginFields } from 'screens/components/global/fields';
-import { faLock, faUser, faUserAlt, faUserCircle, faUsersRectangle } from '@fortawesome/free-solid-svg-icons';
-import { generateRandomKey } from '../../../firebase/function';
+import { logindata } from 'types/interfaces';
 import { Alert, Button, Stack, TextField } from '@mui/material';
-import FormHeader from 'screens/components/FormHeader';
 
-let md5 = require('md5')
+export default function Login() {
 
-export default function Login({}) {
-
-  const [verification, setverification] = useState('');
   const [username, setusername] = useState('');
-  const [forgotten, setforgotten] = useState(false)
+  const [forgotten] = useState(false)
   const [loginpassword, setloginPassword] = useState('');
   const { currentUser } = useContext(AuthContext);
   const [toast, settoast] = useState('');
@@ -28,24 +21,19 @@ export default function Login({}) {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const getUserData = async () => {
-   try {
- 
-     const querySnapshot = await getDocs(collection(db, 'user'));
-     querySnapshot.forEach((doc: any) => {
-       // console.log(doc.id, ' => ', doc.data());
-     });
-   } catch (error) {
-     console.log(error);
-     console.log('Error getting user documents: ', error);
-   }
- };
- 
- getUserData();
-   if(currentUser != null){
-     navigate("/admin/sales");
-   }
-   }, [currentUser]);
+    const getState = () => {
+      
+    if(currentUser != null){
+      if(currentUser.type === 'admin') {
+        navigate("/admin/sales");
+      }
+      if(currentUser.type === 'staff')  {
+        navigate("/staff/sales");
+      }
+    }
+    }
+    getState()
+   },[currentUser]);
 
    const checkStatus = async (e: any) => {
     e.preventDefault()
@@ -66,33 +54,34 @@ export default function Login({}) {
             username: doc.data().username,
             type: doc.data().type,
             email: doc.data().email,
+            branch: doc.data().branch,
             
         });
       }
     });
-
+    console.log(userData)
     if (userData.length > 0) {
       settoast('verifying credentials...')
-      const isAdmin = userData.some((user) => user.type === "admin");
-      if (isAdmin) {
         const email = userData[0].email;
         const password = loginpassword;
         settoast('logging in...')
-        await signInWithEmailAndPassword(auth, email, password).then(() => {
+        await signInWithEmailAndPassword(auth, email, password).then((res) => {
           setloading(false)
           setsubmitted(false)
-          navigate("/admin/sales")
+          console.log(res)
+          if(userData[0].type === 'staff'){
+            navigate('/staff/sales')
+          }
+          if(userData[0].type === 'admin'){
+            navigate('/admin/sales')
+          }
         }).catch((error: any) => {
           console.log(error)
-          if(error == 'FirebaseError: Firebase: Error (auth/invalid-login-credentials).'){
+          if(error === 'FirebaseError: Firebase: Error (auth/invalid-login-credentials).'){
           settoast('username and password did not matched.')
           seterror(true)
         }
         })
-      } else {
-        settoast('The provided username used in a non-admin account')
-        seterror(true)
-      }
     } else {
       settoast('username provided have no account with us')
       seterror(true)

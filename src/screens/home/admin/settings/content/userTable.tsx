@@ -1,15 +1,16 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import '../../admin.css'
 import '../../../../../index.css'
 import { collection, onSnapshot } from '@firebase/firestore';
 import {db} from '../../../../../firebase/index'
-import { Card, CardContent, Modal, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
+import { Button, Card, CardContent, Modal, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
 import { appuserdata, flightdata, sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
 import firestore from '@firebase/firestore'
 import { BarChart } from '@mui/x-charts';
 import Form from './form';
+import { AuthContext } from 'auth';
 type Props = {
 
     data: appuserdata[],
@@ -29,7 +30,7 @@ export default function SettingTable({data, handleView}: Props) {
     const [rowsPerPage, setRowsPerPage] = React.useState(5); // You can adjust the number of rows per page here
     const [orderBy, setOrderBy] = React.useState<keyof appuserdata>('uid');
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
-
+    const {currentUser} = useContext(AuthContext)
     const handleRequestSort = (property: keyof appuserdata) => {
       const isAsc = orderBy === property && order === 'asc';
       setOrderBy(property);
@@ -48,7 +49,7 @@ export default function SettingTable({data, handleView}: Props) {
     const filteredRows = rows.filter(row => {
   
       // Check if the date string includes the search query
-      return (row.staff?.toLowerCase().includes(searchQuery.toLowerCase())) || 
+      return (row.username?.toLowerCase().includes(searchQuery.toLowerCase())) || 
           (row.email?.toString().includes(searchQuery.toLowerCase()));
   });
   
@@ -83,11 +84,11 @@ export default function SettingTable({data, handleView}: Props) {
                   <TableSortLabel
                     className='headerCell'
                      style={{
-                      color: orderBy === 'staff' ? '#000' : '#fff'
+                      color: orderBy === 'username' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'staff'}
-                    direction={orderBy === 'staff' ? order : 'asc'}
-                    onClick={() => handleRequestSort('staff')}
+                    active={orderBy === 'username'}
+                    direction={orderBy === 'username' ? order : 'asc'}
+                    onClick={() => handleRequestSort('username')}
                     
                   >
                     Name
@@ -137,11 +138,12 @@ export default function SettingTable({data, handleView}: Props) {
               ).map((row, index) => (
                 <TableRow key={index}>
                   <TableCell>{row.active == true ? 'Yes' : 'No'}</TableCell>
-                  <TableCell>{row.staff}</TableCell>
+                  <TableCell>{row.username}</TableCell>
                   <TableCell>{row.restrict == true ? 'Restricted' : 'Not Restricted'}</TableCell>
                   <TableCell>{new Date(row.lastLoggedIn?.toDate()).toISOString() || ''}</TableCell>
                   <TableCell sx={{cursor: 'pointer'}} onClick={() => handleView(row)}>
                   <FontAwesomeIcon icon={faEye} width={50} height={50} />
+                  
                   </TableCell> 
                 </TableRow>
               ))}
