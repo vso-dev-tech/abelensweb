@@ -146,9 +146,8 @@ const [isFocused, setIsFocused] = useState(false);
             </TableBody>
           </Table>
         </TableContainer>
-        <Card sx={{alignSelf: 'flex-end', marginRight: 5, marginTop: 5, flexDirection: 'row', display: 'flex', justifyContent: 'space-between', width: '50%'}}>
+        <Card sx={{alignSelf: 'flex-end', marginRight: '2rem', marginTop: 5, flexDirection: 'row', display: 'flex', justifyContent: 'space-between', width: '50%'}}>
             <CardContent>
-                
                 <h4>StaffName: </h4>
                 <h4>Date:</h4>
                 <h4>Time: </h4>

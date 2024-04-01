@@ -27,7 +27,8 @@ export default function Settings({}) {
 	const [opencreateaccount, setopencreateAccount] = useState<boolean>(false)
 	const [modalData, setModalData] = useState<appuserdata>()
 	const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-	const [branch, setbranch] = useState('Abelens')
+	const [branch, setbranch] = useState('Abelens');
+	const [editbranch, seteditbranch] = useState('Abelens');
   const handleFileChange = (e: any) => {
 	if (e.target.files && e.target.files.length > 0) {
 	  const fileData = e.target.files[0];
@@ -96,18 +97,18 @@ export default function Settings({}) {
 
   React.useEffect(() => {
 	const unsubscribe = onSnapshot(collection(db, 'user'), (snapshot) => {
+		
+		const userdata: appuserdata[] = []
 		snapshot.forEach((doc) => {
-			const userdata: appuserdata[] = []
 			const data = doc.data() as appuserdata
-			if (data.branch === branch) {
-        userdata.push(data);
-      }
-			
-			setuserdata(userdata)
+			if (data.branch === editbranch){
+				userdata.push(data);
+			}
 		})
+		setuserdata(userdata)
 	});
 	return () => unsubscribe();
-  },[branch])
+  	},[editbranch])
 
 	React.useEffect(() => {
 		const unsubscribe = onSnapshot(collection(db, 'appcontrol'), (snapshot) => {
@@ -231,13 +232,13 @@ export default function Settings({}) {
 							<h4 style = {{marginBlockEnd: 0}}>APP USER SETTINGS</h4>
 							<p>Edit, Add, or Delete Users per branch</p>
 							<Select 
-								defaultValue={'manilajd'}
+								defaultValue={'Abelens'}
+								value = {editbranch}
 								sx={{width: 200, marginBottom: 3, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
-								onChange={(e) => setbranch(e.target.value)}
+								onChange={(e) => seteditbranch(e.target.value)}
 							>
-									{menu.map((item, index) => (<MenuItem value = {item} key={index}>{item.toUpperCase()}
-									</MenuItem>
-									))}
+									<MenuItem value = {'Abelens'} key = {0} >Abelens Branch</MenuItem>
+									<MenuItem value = {'Nepo'} key ={1}>Nepo Branch</MenuItem>
 						</Select>
 						<Button onClick={() => setopenUserModal(true)} variant='contained' sx = {{width: '30%', backgroundColor: '#30BE7A', fontWeight: 'bolder'}}>View Users</Button>
 						</Stack>

@@ -1,7 +1,9 @@
 import { createContext, useEffect, useState } from "react";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "@firebase/auth";
 import React from "react";
+import { collection, getDoc, getDocs } from "firebase/firestore";
+import { logindata } from "types/interfaces";
 
 // Define the type for your user
 type User = {
@@ -12,7 +14,7 @@ type User = {
 };
 
 type AuthContextType = {
-  currentUser: User | null;
+  currentUser: logindata | null | undefined;
 };
 
 type Children = {
@@ -25,15 +27,22 @@ export const AuthContext = createContext<AuthContextType>({
 
 // AuthContextProvider component
 export const AuthContextProvider: React.FC<Children> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<logindata | null>();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, async(user) => {
       if (user) {
-        const { uid, displayName, email, photoURL } = user;
-        setCurrentUser({ uid, displayName, email, photoURL });
+        const data = await getDocs(collection(db, 'user'));
+        const thisdata: logindata[] = []
+        data.forEach((doc) => {
+          const data = doc.data() as logindata
+          if (data.uid === user.uid) {
+            thisdata.push(data)
+          }
+        });
+        setCurrentUser(thisdata[0])
       } else {
-        setCurrentUser(null);
+       setCurrentUser(null)
       }
     });
 
@@ -41,6 +50,7 @@ export const AuthContextProvider: React.FC<Children> = ({ children }) => {
       unsub();
     };
   }, []);
+
 
   return (
     <AuthContext.Provider value={{ currentUser }}>

@@ -11,11 +11,12 @@ import { educationdata, personaldata } from 'types/interfaces';
 import { CustomButton } from '../global/buttons';
 import { Button, ButtonBase, IconButton } from '@mui/material';
 import TouchRipple from '@mui/material/ButtonBase/TouchRipple';
+import StaffNavBarItems from './navigator/staffnavbaritems';
 type Props = {
   menu: any,
 }
 
-export const Header: React.FC<Props> = ({menu}) => {
+export const StaffHeader: React.FC<Props> = ({menu}) => {
   const [active, setActive] = useState(1);
   const navigate = useNavigate()
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -31,7 +32,7 @@ export const Header: React.FC<Props> = ({menu}) => {
   const signOutUser = async () => {
 		try {
 				await signOut(auth);
-        navigate('/logout')
+				navigate('/logout')
 				console.log("User signed out successfully.");
 			} catch (error) {
 				// Handle any errors here
@@ -47,7 +48,7 @@ export const Header: React.FC<Props> = ({menu}) => {
       <div className="right">
         {menu.map((item: any, index: number) =>(
           <div key={index}  onClick={() => __navigate(item.id)}>
-              <NavBarItems
+              <StaffNavBarItems
               
                   onClick={() => setDropdownVisible(false)}
                   active={item.id === active}

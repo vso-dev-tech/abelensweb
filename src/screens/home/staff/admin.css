@@ -1,0 +1,17 @@
+.headerCell {
+    font-weight: bold;
+    color: #fff;
+    font-size: 16px;
+  }
+.headerCell:active{
+    color: '#fff'
+}
+.approvedCell {
+    color: #4BB543;
+    font-weight: 600;
+}
+
+.deniedCell {
+    color: grey;
+    font-weight: 600;
+}
