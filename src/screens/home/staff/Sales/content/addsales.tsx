@@ -21,18 +21,24 @@ export default function AddSales({}: Props) {
 		const [total, setotal] = React.useState<number[]>([])
     const [submittext, setsubmittext] = React.useState<string>('')
     const [issubmitting, setissubmitting] = React.useState<boolean>(false)
+    const [excess, setexcess] = React.useState(false)
+
     const removeItem = (itemnoToRemove: number) => {
-        	// Find the index of the last occurrence of the item with the specified itemno
-		const indexToRemove = selecteditem.slice().reverse().findIndex(item => item.itemno === itemnoToRemove);
-		if (indexToRemove !== -1) {
-			// Create a copy of the selecteditem array
-			const updatedSelectedItems = [...selecteditem];
-			// Remove the item at the calculated index
-			updatedSelectedItems.splice(updatedSelectedItems.length - 1 - indexToRemove, 1);
-			// Update the state with the modified array
-			setselecteditem(updatedSelectedItems);
-		}
+      const indexToRemove = selecteditem.slice().reverse().findIndex(item => item.itemno === itemnoToRemove);
+      if (indexToRemove !== -1) {
+        const updatedSelectedItems = [...selecteditem];
+        updatedSelectedItems.splice(updatedSelectedItems.length - 1 - indexToRemove, 1);
+        setselecteditem(updatedSelectedItems);
+      }
     }
+
+    const removeAllItem = (itemnoToRemove: number) => {
+      console.log(itemnoToRemove)
+      console.log(selecteditem)
+      const updatedSelectedItems = selecteditem.filter((item) => {console.log('tangina', item.itemno); return item.itemno !== itemnoToRemove});
+      console.log(updatedSelectedItems)
+      setselecteditem(updatedSelectedItems);
+    };
 
     const groupedItems: { [itemno: string]: inventory[] } = {};
 					selecteditem.forEach(item => {
@@ -48,7 +54,7 @@ export default function AddSales({}: Props) {
 			const items = groupedItems[item];
 			// Calculate the total price for all items in the group
 			const totalPrice = items.reduce((acc, currentItem) => {
-				return acc + (currentItem.unitprice);
+				return currentItem.sellingprice * items.length;
 			}, 0);
 			return Math.floor(totalPrice);
 		});
@@ -98,6 +104,7 @@ export default function AddSales({}: Props) {
                     itemno: currentItem.itemno.toString(),
                     itemname: currentItem.itemname,
                     unitprice: currentItem.unitprice,
+                    sellingprice: currentItem.sellingprice,
                   });
                   return acc;
                 }, {} as { [key: string]: salesdetails[] })).map(async (items: salesdetails[]) => {
@@ -133,7 +140,7 @@ export default function AddSales({}: Props) {
                         console.log('Processing dataItem:', dataItem);
                         if (dataItem.docId === item.docId) {
                           console.log('Updating dataItem:', dataItem);
-                          const updatedUnitsales = dataItem.unitsales + 1;
+                          const updatedUnitsales = dataItem.unitsales + items.length;
                           console.log('New value of unitsales:', updatedUnitsales);
                           return {
                             ...dataItem,
@@ -184,22 +191,32 @@ export default function AddSales({}: Props) {
           setissubmitting(false);
         }
       };
-      
 
+      const handleAddItem = (item: inventory) => {
+        const existingItemCount = selecteditem.filter((selectedItem) => selectedItem.itemno === item.itemno).length;
+        const availableStock = item.stocks - existingItemCount;
+        if (availableStock > 0) {
+          setselecteditem((prev) => [...prev, item]);
+        } else {
+          setexcess(true)
+          alert('Selected item is out of stock or not available.');
+          setexcess(false)
+        }
+      };
 
 
   return (
     <div style = {{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 75, width: '100%'}}>
     <Card sx={{ height: 1100, flexDirection: 'column', display:'flex'}}>
         <CardContent style = {{padding: 25, flexDirection: 'row', display:'flex'}}>
-            <SalesInventory data = {(e) => 	setselecteditem((prev) => [...prev, e])}/>
+            <SalesInventory returnexcess = {(e) => setexcess(e)} excess = {excess} data = {handleAddItem}/>
             <br/>
             <Divider/>
             <br/>
             <Stack >
             <div style={{alignSelf: 'flex-end', marginRight: 5, marginTop: 5, flexDirection: 'column', display: 'flex', justifyContent: 'space-between', width: '100%',}}>
                 
-            <SalesTable removeItem={(e) => removeItem(e)} data = {selecteditem}/>
+            <SalesTable removeAllItem={(e) => removeAllItem(e)} removeItem={(e) => removeItem(e)} data = {selecteditem}/>
             <Stack sx = {{width: '100%', justifyContent: 'space-between', alignItems: 'flex-end', flexDirection: 'row'}}>
             <Stack sx = {{flexDirection: 'row', marginRight: 0}}>
             <Button onClick={submit} variant='contained' sx={{height: 150, width: 150, background: '#30BE7A', flexDirection:'column', color: '#fff', fontWeight: 'bold', fontSize: 12, marginLeft: 5}}><FontAwesomeIcon icon={faCartPlus} color='#FFF' style={{width: 65, height: 65}} />ADD SALES</Button>

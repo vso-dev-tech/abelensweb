@@ -129,7 +129,7 @@ const [isFocused, setIsFocused] = useState(false);
                     active={orderBy === 'unitprice'}
                     direction={orderBy === 'unitprice' ? order : 'asc'}
                   >
-                    Unit price
+                    Total
                   </TableSortLabel>
                 </TableCell>
               </TableRow>
@@ -141,6 +141,7 @@ const [isFocused, setIsFocused] = useState(false);
                   <TableCell>{row.itemname}</TableCell>
                   <TableCell>{row.unit}</TableCell>
                   <TableCell>₱{row.unitprice}</TableCell>
+                  
                 </TableRow>
               ))}
             </TableBody>

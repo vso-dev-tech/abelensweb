@@ -6,13 +6,14 @@ import {db} from '../../../../../firebase/index'
 import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
 import { flightdata, inventory, sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faCartPlus, faClose, faDeleteLeft, faEye, faMinus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from 'auth';
 import { Prev } from 'react-bootstrap/esm/PageItem';
 type Props = {
 
     data: inventory[],
     removeItem: (e: number) => void,
+    removeAllItem: (e: number) => void,
 }
 
 interface Row {
@@ -36,7 +37,7 @@ interface Row {
     'kenns',
   ]
 
-export default function SalesTable({data, removeItem}: Props) {
+export default function SalesTable({data, removeItem, removeAllItem}: Props) {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
@@ -98,9 +99,9 @@ export default function SalesTable({data, removeItem}: Props) {
 	useEffect(() => {
 		const newTotals = Object.keys(groupedItems).map(item => {
 			const items = groupedItems[item];
-			// Calculate the total price for all items in the group
 			const totalPrice = items.reduce((acc, currentItem) => {
-				return acc + (currentItem.unitprice);
+        
+				return currentItem.sellingprice * items.length;
 			}, 0);
 			return Math.floor(totalPrice);
 		});
@@ -136,7 +137,7 @@ export default function SalesTable({data, removeItem}: Props) {
   return (
     <div style = {{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginTop: 30, flexDirection: 'column', height: chartHeight}}>
         <div style={{overflow: 'hidden', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '95%'}} >
-        <TableContainer component={Paper} sx={{width: 800,outline: 'none', '&:focus': { border: 'none' }, overflowY: 'scroll', height: '100%'}}>
+        <TableContainer component={Paper} sx={{width: 900,outline: 'none', '&:focus': { border: 'none' }, overflowY: 'scroll', height: '100%'}}>
         <Table>
             <TableHead sx={{backgroundColor: '#fff'}}>
               <TableRow>
@@ -177,7 +178,7 @@ export default function SalesTable({data, removeItem}: Props) {
 										color: '#000'
 										}}
                   >
-                    Unit Price
+                    Total
                   </TableSortLabel>
                 </TableCell>
               </TableRow>
@@ -187,11 +188,13 @@ export default function SalesTable({data, removeItem}: Props) {
                 Object.keys(groupedItems).map((item, index) => {
                 const items = groupedItems[item];
                 return (
-                <TableRow key={index} sx={{cursor: 'pointer', height: 50, justifyContent: 'center', alignItems: 'center'}} onClick={() => removeItem(items[0].itemno)}>
+                <TableRow key={index} sx={{cursor: 'pointer', height: 50, justifyContent: 'center', alignItems: 'center'}}>
                     <TableCell sx={{height: 10}}>{item}</TableCell>
                     <TableCell sx={{height: 10, width: '100%', textAlign: 'center'}}>{items.map((item, index) => index === 0 ? item.itemname : null)}</TableCell>
                     <TableCell sx={{height: 10}}>{items.length}</TableCell>
                     <TableCell sx={{height: 10}}>₱{total[index]}</TableCell>
+                    <TableCell onClick={() => removeItem(items[0].itemno)} sx={{height: 10, width: '100%', textAlign: 'center'}}><FontAwesomeIcon icon={faMinus} color='grey'/></TableCell>
+                    <TableCell onClick={() => removeAllItem(items[0].itemno)} sx={{height: 10, width: '100%', textAlign: 'center'}}><FontAwesomeIcon icon={faTrash} color='red'/></TableCell>
                 </TableRow>
                 );
                 })

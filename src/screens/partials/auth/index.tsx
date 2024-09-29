@@ -33,7 +33,7 @@ export default function Login() {
     }
     }
     getState()
-   },[currentUser]);
+   },[currentUser, navigate]);
 
    const checkStatus = async (e: any) => {
     e.preventDefault()

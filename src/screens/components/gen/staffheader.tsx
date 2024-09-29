@@ -43,7 +43,7 @@ export const StaffHeader: React.FC<Props> = ({menu}) => {
 
   return (
     <div className="header">
-     <h3>ABELENS</h3>
+     <a style={{textDecoration: 'none'}} href='https://docs.google.com/spreadsheets/d/1wIp-Afc6kxsYL3LllPpq00vV68P0IHmgXXp0qYYbWL4/edit?usp=sharing'><h3>ABELENS</h3></a>
      <p>Inventory Management System</p>
       <div className="right">
         {menu.map((item: any, index: number) =>(

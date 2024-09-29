@@ -1,16 +1,9 @@
-import React,{useState, useEffect, useContext} from 'react'
-import { useLocation, useNavigate } from 'react-router-dom';
-import { AuthContext } from 'auth';
+import React,{useState} from 'react'
+import { useNavigate } from 'react-router-dom';
 import '../styles/components.css'
 import { signOut } from 'firebase/auth';
 import { auth } from '../../../firebase/index';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleUser, faLocationDot, faUser } from '@fortawesome/free-solid-svg-icons';
 import NavBarItems from './navigator/navbaritems';
-import { educationdata, personaldata } from 'types/interfaces';
-import { CustomButton } from '../global/buttons';
-import { Button, ButtonBase, IconButton } from '@mui/material';
-import TouchRipple from '@mui/material/ButtonBase/TouchRipple';
 type Props = {
   menu: any,
 }
@@ -18,12 +11,7 @@ type Props = {
 export const Header: React.FC<Props> = ({menu}) => {
   const [active, setActive] = useState(1);
   const navigate = useNavigate()
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const {currentUser} = useContext(AuthContext)
 
-  const toggleDropdown = () => {
-    setDropdownVisible(!dropdownVisible);
-  };
   const __navigate = (id: number) => {
     setActive(id);
   }
@@ -42,14 +30,13 @@ export const Header: React.FC<Props> = ({menu}) => {
 
   return (
     <div className="header">
-     <h3>ABELENS</h3>
+    <a style={{textDecoration: 'none'}}  href='https://docs.google.com/spreadsheets/d/1wIp-Afc6kxsYL3LllPpq00vV68P0IHmgXXp0qYYbWL4/edit?usp=sharing'><h3>ABELENS</h3></a>
      <p>Inventory Management System</p>
       <div className="right">
         {menu.map((item: any, index: number) =>(
           <div key={index}  onClick={() => __navigate(item.id)}>
               <NavBarItems
-              
-                  onClick={() => setDropdownVisible(false)}
+                  onClick={() => {}}
                   active={item.id === active}
                   item={item} />
           </div>

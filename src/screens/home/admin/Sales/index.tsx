@@ -1,17 +1,14 @@
 import React from 'react'
 import '../admin.css'
 import '../../../../index.css'
-import { collection, onSnapshot } from '@firebase/firestore';
+import { collection, onSnapshot, query, where, limit, startAfter, orderBy } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
-import { Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
-import { flightdata, sales } from 'types/interfaces';
+import { Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
+import { sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
-import firestore from '@firebase/firestore'
 import { BarChart } from '@mui/x-charts';
 import Form from './content/form';
-import { menu } from '../Inventory';
-type Props = {}
 
 interface Row {
     branch: string,
@@ -25,23 +22,16 @@ interface Row {
     transId: number,
   }
 
-  const salestype = [
-    'All',
-    'Abelens',
-    'Nepo'
-  ]
- 
-
-export default function Sales({}: Props) {
+export default function Sales() {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
     const [transid, settransid] = React.useState<number | null>(null)
     const [searchQuery, setSearchQuery] = React.useState('');
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5); // You can adjust the number of rows per page here
-    const [orderBy, setOrderBy] = React.useState<keyof Row>('transId');
-    const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [ordersBy, setOrderBy] = React.useState<keyof Row>('transId');
+    const [order, setOrder] = React.useState<'asc' | 'desc'>('desc');
     const [rows, setrow] = React.useState<sales[]>([])
     const [sales, setsales] = React.useState<sales>()
     const [branch, setbranch] = React.useState<string>('Nepo')
@@ -49,32 +39,63 @@ export default function Sales({}: Props) {
     const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
     const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
     React.useEffect(() => {
-        const unsubscribe = onSnapshot(collection(db, 'sales'), (snapshot) => {
+      const baseQuery = branchsales !== 'All'
+          ? query(collection(db, 'sales'), where('branch', '==', branchsales))
+          : collection(db, 'sales');
+  
+      const paginatedQuery = query(
+          baseQuery,
+          orderBy(ordersBy),
+          limit(rowsPerPage),
+          startAfter(page * rowsPerPage)
+      );
+  
+      const unsubscribe = onSnapshot(paginatedQuery, (snapshot) => {
           const newData: sales[] = [];
-          const weeklydata: sales[] = [];
           const branchinventorysales: sales[] = [];
           snapshot.forEach((doc) => {
-            const data = doc.data() as sales
-            weeklydata.push(data)
-            if(data.branch == branch){
-              branchinventorysales.push(data)
-            }
-            if(branchsales != 'All'){
-            if(data.branch === branchsales)
-            newData.push(data)
-            } else {
-              newData.push(data)
-            }
+              const data = doc.data() as sales;
+              if (data.branch === branch) {
+                  branchinventorysales.push(data);
+              }
+              newData.push(data);
           });
           setrow(newData);
-          setbranchinventory(branchinventorysales)
-          setweeklytotalsales(weeklydata)
+          setbranchinventory(branchinventorysales);
+      });
+  
+      return () => unsubscribe();
+  }, [branchsales, branch, page, rowsPerPage, ordersBy]);
+
+  React.useEffect(() => {
+    const currentDate = new Date();
+    const sixDaysAgo = new Date(new Date().setDate(currentDate.getDate() - 6));
+
+    const baseQuery = branchsales !== 'All'
+        ? query(collection(db, 'sales'), where('branch', '==', branchsales))
+        : collection(db, 'sales');
+
+    const paginatedQuery = query(
+        baseQuery,
+        where('date', '>=', sixDaysAgo),
+        where('date', '<=', currentDate),
+        orderBy('date')
+    );
+
+    const unsubscribe = onSnapshot(paginatedQuery, (snapshot) => {
+        const weeklydata: sales[] = [];
+        snapshot.forEach((doc) => {
+            const data = doc.data() as sales;
+            weeklydata.push(data);
         });
-    
-        return () => unsubscribe();
-      }, [branchsales, branch]);
+        setweeklytotalsales(weeklydata);
+    });
+
+    return () => unsubscribe();
+}, [branchsales]);
+
     const handleRequestSort = (property: keyof Row) => {
-      const isAsc = orderBy === property && order === 'asc';
+      const isAsc = ordersBy === property && order === 'asc';
       setOrderBy(property);
       setOrder(isAsc ? 'desc' : 'asc');
     };
@@ -104,8 +125,8 @@ export default function Sales({}: Props) {
   
     const sortedRows = filteredRows.sort((a, b) => {
       const isAsc = order === 'asc';
-      if (a[orderBy] < b[orderBy]) return isAsc ? -1 : 1;
-      if (a[orderBy] > b[orderBy]) return isAsc ? 1 : -1;
+      if (a[ordersBy] < b[ordersBy]) return isAsc ? -1 : 1;
+      if (a[ordersBy] > b[ordersBy]) return isAsc ? 1 : -1;
       return 0;
     });
 
@@ -169,7 +190,6 @@ export default function Sales({}: Props) {
       branchdates.push(branchformattedDate);
       branchtotalSales.push(branchaggregatedSales[branchformattedDate] || 0); 
   }
-
   return (
     <div className='container'>
         <div style = {{ overflowY: 'auto', flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100%', justifyContent: 'center', alignItems: 'flex-start'}}>
@@ -259,10 +279,10 @@ export default function Sales({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                      style={{
-                      color: orderBy === 'date' ? '#000' : '#fff'
+                      color: ordersBy === 'date' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'date'}
-                    direction={orderBy === 'date' ? order : 'asc'}
+                    active={ordersBy === 'date'}
+                    direction={ordersBy === 'date' ? order : 'asc'}
                     onClick={() => handleRequestSort('date')}
                   >
                     Date
@@ -272,10 +292,10 @@ export default function Sales({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                      style={{
-                      color: orderBy === 'transId' ? '#000' : '#fff'
+                      color: ordersBy === 'transId' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'transId'}
-                    direction={orderBy === 'transId' ? order : 'asc'}
+                    active={ordersBy === 'transId'}
+                    direction={ordersBy === 'transId' ? order : 'asc'}
                     onClick={() => handleRequestSort('transId')}
                     
                   >
@@ -286,10 +306,10 @@ export default function Sales({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                     style={{
-                      color: orderBy === 'noitem' ? '#000' : '#fff'
+                      color: ordersBy === 'noitem' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'noitem'}
-                    direction={orderBy === 'noitem' ? order : 'asc'}
+                    active={ordersBy === 'noitem'}
+                    direction={ordersBy === 'noitem' ? order : 'asc'}
                     onClick={() => handleRequestSort('noitem')}
                   >
                     No. of Items
@@ -299,10 +319,10 @@ export default function Sales({}: Props) {
                   <TableSortLabel
                    className='headerCell'
                     style={{
-                      color: orderBy === 'branch' ? '#000' : '#fff'
+                      color: ordersBy === 'branch' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'branch'}
-                    direction={orderBy === 'branch' ? order : 'asc'}
+                    active={ordersBy === 'branch'}
+                    direction={ordersBy === 'branch' ? order : 'asc'}
                     onClick={() => handleRequestSort('branch')}
                   >
                     Branch
@@ -312,10 +332,10 @@ export default function Sales({}: Props) {
                   <TableSortLabel
                    className='headerCell'
                     style={{
-                    color: orderBy === 'total' ? '#000' : '#fff'
+                    color: ordersBy === 'total' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'total'}
-                    direction={orderBy === 'total' ? order : 'asc'}
+                    active={ordersBy === 'total'}
+                    direction={ordersBy === 'total' ? order : 'asc'}
                     onClick={() => handleRequestSort('total')}
                   >
                     Total

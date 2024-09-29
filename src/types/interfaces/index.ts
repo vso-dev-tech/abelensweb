@@ -1,5 +1,4 @@
 import firestore from '@firebase/firestore'
-import Inventory from 'screens/home/admin/Inventory'
 
 export interface disabledform {
   
@@ -19,6 +18,7 @@ export interface appuserdata {
   username: string,
   storeid: string,
   uid: string,
+  type: string,
 }
 
 export interface sales {
@@ -41,12 +41,14 @@ export interface salesdetails {
   itemname: string,
   docId: string,
   unitprice: number,
+  sellingprice: number,
 }
 
 export interface inventory {
   active: boolean,
   date: firestore.Timestamp,
   docId: string,
+  sellingprice: number,
   itemname: string,
   itemno: number,
   stocks: number,

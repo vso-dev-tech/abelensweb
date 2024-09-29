@@ -132,6 +132,18 @@ const [isFocused, setIsFocused] = useState(false);
                     Unit price
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                   className='headerCell'
+                    style={{
+                      color: orderBy === 'sellingprice' ? '#000' : '#fff'
+                    }}
+                    active={orderBy === 'sellingprice'}
+                    direction={orderBy === 'sellingprice' ? order : 'asc'}
+                  >
+                    Total
+                  </TableSortLabel>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -141,6 +153,7 @@ const [isFocused, setIsFocused] = useState(false);
                   <TableCell>{row.itemname}</TableCell>
                   <TableCell>{row.unit}</TableCell>
                   <TableCell>₱{row.unitprice}</TableCell>
+                  <TableCell>₱{Math.floor(row.sellingprice * row.unit)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
