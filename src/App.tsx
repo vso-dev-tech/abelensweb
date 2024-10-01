@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, Outlet, Link } from "react-router-dom";
+import React, { useContext } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import './App.css';
 import { AuthContext } from 'auth';
-import { ForgotPassword } from 'screens/partials/auth/forgotpassword';
 import { children } from 'types/interfaces';
 import Login from 'screens/partials/auth';
 import { Header } from 'screens/components/gen/header';
@@ -24,7 +23,7 @@ const App: React.FC = () => {
   const { currentUser } = useContext(AuthContext);
   const isAdmin = currentUser && currentUser.type === 'admin';
   const isStaff = currentUser && currentUser.type === 'staff';
-
+  
   const ProtectedAdminRoute: React.FC<children> = ({ children }) => {
     if (!isAdmin) {
       return <Navigate to="/" />;
