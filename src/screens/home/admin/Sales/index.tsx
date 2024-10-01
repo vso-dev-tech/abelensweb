@@ -1,7 +1,7 @@
 import React from 'react'
 import '../admin.css'
 import '../../../../index.css'
-import { collection, onSnapshot, query, where, limit, startAfter, orderBy } from '@firebase/firestore';
+import { doc, onSnapshot } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
 import { Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
 import { sales } from 'types/interfaces';
@@ -25,171 +25,153 @@ interface Row {
 export default function Sales() {
 
     
-    const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
-    const [transid, settransid] = React.useState<number | null>(null)
-    const [searchQuery, setSearchQuery] = React.useState('');
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
-    const [ordersBy, setOrderBy] = React.useState<keyof Row>('transId');
-    const [order, setOrder] = React.useState<'asc' | 'desc'>('desc');
-    const [rows, setrow] = React.useState<sales[]>([])
-    const [sales, setsales] = React.useState<sales>()
-    const [branch, setbranch] = React.useState<string>('Nepo')
-    const [branchsales, setbranchsales] = React.useState<string>('All')
-    const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
-    const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
-    React.useEffect(() => {
-      const baseQuery = branchsales !== 'All'
-          ? query(collection(db, 'sales'), where('branch', '==', branchsales))
-          : collection(db, 'sales');
-  
-      const paginatedQuery = query(
-          baseQuery,
-          orderBy(ordersBy),
-          limit(rowsPerPage),
-          startAfter(page * rowsPerPage)
-      );
-  
-      const unsubscribe = onSnapshot(paginatedQuery, (snapshot) => {
-          const newData: sales[] = [];
-          const branchinventorysales: sales[] = [];
-          snapshot.forEach((doc) => {
-              const data = doc.data() as sales;
-              if (data.branch === branch) {
-                  branchinventorysales.push(data);
-              }
-              newData.push(data);
-          });
-          setrow(newData);
-          setbranchinventory(branchinventorysales);
-      });
-  
-      return () => unsubscribe();
-  }, [branchsales, branch, page, rowsPerPage, ordersBy]);
-
+  const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
+  const [transid, settransid] = React.useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5); // You can adjust the number of rows per page here
+  const [orderBy, setOrderBy] = React.useState<keyof Row>('transId');
+  const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
+  const [rows, setrow] = React.useState<sales[]>([])
+  const [sales, setsales] = React.useState<sales>()
+  const [branch, setbranch] = React.useState<string>('Nepo')
+  const [branchsales, setbranchsales] = React.useState<string>('All')
+  const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
+  const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
   React.useEffect(() => {
-    const currentDate = new Date();
-    const sixDaysAgo = new Date(new Date().setDate(currentDate.getDate() - 6));
+    const salesDocRef = doc(db, 'sales', 'sales'); // Reference to the sales document
+    const unsubscribe = onSnapshot(salesDocRef, (doc) => {
+        if (doc.exists()) {
+            const salesData = doc.data().sales || []; // Get the sales array
+            
+            const newData: sales[] = [];
+            const weeklydata: sales[] = [];
+            const branchinventorysales: sales[] = [];
 
-    const baseQuery = branchsales !== 'All'
-        ? query(collection(db, 'sales'), where('branch', '==', branchsales))
-        : collection(db, 'sales');
+            salesData.forEach((data: sales) => {
+                weeklydata.push(data);
+                
+                if (data.branch === branch) {
+                    branchinventorysales.push(data);
+                }
 
-    const paginatedQuery = query(
-        baseQuery,
-        where('date', '>=', sixDaysAgo),
-        where('date', '<=', currentDate),
-        orderBy('date')
-    );
-
-    const unsubscribe = onSnapshot(paginatedQuery, (snapshot) => {
-        const weeklydata: sales[] = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data() as sales;
-            weeklydata.push(data);
-        });
-        setweeklytotalsales(weeklydata);
+                if (branchsales !== 'All') {
+                    if (data.branch === branchsales) {
+                        newData.push(data);
+                    }
+                } else {
+                    newData.push(data);
+                }
+            });
+            console.log(newData)
+            setrow(newData);
+            setbranchinventory(branchinventorysales);
+            setweeklytotalsales(weeklydata);
+        } else {
+            console.error('Sales document does not exist');
+        }
     });
 
-    return () => unsubscribe();
-}, [branchsales]);
+    return () => unsubscribe(); // Clean up the listener on unmount
+}, [branchsales, branch]);
 
-    const handleRequestSort = (property: keyof Row) => {
-      const isAsc = ordersBy === property && order === 'asc';
-      setOrderBy(property);
-      setOrder(isAsc ? 'desc' : 'asc');
-    };
-  
-    const handleChangePage = (event: unknown, newPage: number) => {
-      setPage(newPage);
-    };
-  
-    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      setPage(0);
-    };
-  
-    const filteredRows = rows.filter(row => {
-      // Convert Firestore Timestamp to JavaScript Date object
-      const date = new Date(row.date?.seconds * 1000 + row.date?.nanoseconds / 1000000);
-      
-      // Format the date as needed (e.g., toLocaleDateString)
-      const dateString = date.toLocaleDateString('en-US').toLowerCase();
-  
-      // Check if the date string includes the search query
-      return dateString.includes(searchQuery.toLowerCase()) || 
-          (row.branch?.toLowerCase().includes(searchQuery.toLowerCase())) || 
-          (row.transId?.toString().includes(searchQuery.toLowerCase()));
+  const handleRequestSort = (property: keyof Row) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrderBy(property);
+    setOrder(isAsc ? 'desc' : 'asc');
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const filteredRows = rows.filter(row => {
+    // Convert Firestore Timestamp to JavaScript Date object
+    const date = new Date(row.date?.seconds * 1000 + row.date?.nanoseconds / 1000000);
+    
+    // Format the date as needed (e.g., toLocaleDateString)
+    const dateString = date.toLocaleDateString('en-US').toLowerCase();
+
+    // Check if the date string includes the search query
+    return dateString.includes(searchQuery.toLowerCase()) || 
+        (row.branch?.toLowerCase().includes(searchQuery.toLowerCase())) || 
+        (row.transId?.toString().includes(searchQuery.toLowerCase()));
+});
+
+
+  const sortedRows = filteredRows.sort((a, b) => {
+    const isAsc = order === 'asc';
+    if (a[orderBy] < b[orderBy]) return isAsc ? -1 : 1;
+    if (a[orderBy] > b[orderBy]) return isAsc ? 1 : -1;
+    return 0;
   });
-  
-  
-    const sortedRows = filteredRows.sort((a, b) => {
-      const isAsc = order === 'asc';
-      if (a[ordersBy] < b[ordersBy]) return isAsc ? -1 : 1;
-      if (a[ordersBy] > b[ordersBy]) return isAsc ? 1 : -1;
-      return 0;
+
+  const handleView = (item: sales) => {
+      setIsModalOpen(true)
+      settransid(item.transId)
+      setsales(item)
+      console.log(transid)
+  }
+
+const aggregatedSales: { [key: string]: number } = {};
+    weeklytotalsales.forEach(item => {
+        const itemDate = new Date(item.date?.toDate()).toLocaleDateString();
+        if (aggregatedSales[itemDate]) {
+            aggregatedSales[itemDate] += item.total;
+        } else {
+            aggregatedSales[itemDate] = item.total;
+        }
     });
 
-    const handleView = (item: sales) => {
-        setIsModalOpen(true)
-        settransid(item.transId)
-        setsales(item)
-        console.log(transid)
-    }
+// Extract dates and total sales for chart
+const currentDate = new Date();
+const sixDaysAgo = new Date(currentDate);
+sixDaysAgo.setDate(currentDate.getDate() - 6);
 
-  const aggregatedSales: { [key: string]: number } = {};
-      weeklytotalsales.forEach(item => {
-          const itemDate = new Date(item.date?.toDate()).toLocaleDateString();
-          if (aggregatedSales[itemDate]) {
-              aggregatedSales[itemDate] += item.total;
-          } else {
-              aggregatedSales[itemDate] = item.total;
-          }
-      });
+const dates = [];
+const totalSales = [];
 
-  // Extract dates and total sales for chart
-  const currentDate = new Date();
-  const sixDaysAgo = new Date(currentDate);
-  sixDaysAgo.setDate(currentDate.getDate() - 6);
+for (let i = 0; i < 7; i++) {
+    const date = new Date(sixDaysAgo);
+    date.setDate(sixDaysAgo.getDate() + i);
+    const formattedDate = date.toLocaleDateString();
+    dates.push(formattedDate);
+    totalSales.push(aggregatedSales[formattedDate] || 0); 
+}
 
-  const dates = [];
-  const totalSales = [];
+//items
 
-  for (let i = 0; i < 7; i++) {
-      const date = new Date(sixDaysAgo);
-      date.setDate(sixDaysAgo.getDate() + i);
-      const formattedDate = date.toLocaleDateString();
-      dates.push(formattedDate);
-      totalSales.push(aggregatedSales[formattedDate] || 0); 
-  }
+const branchaggregatedSales: { [key: string]: number } = {};
+    branchinventory.forEach(item => {
+        const itemDate = new Date(item.date?.toDate()).toLocaleDateString();
+        if (branchaggregatedSales[itemDate]) {
+          branchaggregatedSales[itemDate] += item.total;
+        } else {
+          branchaggregatedSales[itemDate] = item.total;
+        }
+    });
 
-  //items
+// Extract dates and total sales for chart
+const branchcurrentDate = new Date();
+const branchsixDaysAgo = new Date(branchcurrentDate);
+branchsixDaysAgo.setDate(branchcurrentDate.getDate() - 6);
 
-  const branchaggregatedSales: { [key: string]: number } = {};
-      branchinventory.forEach(item => {
-          const itemDate = new Date(item.date?.toDate()).toLocaleDateString();
-          if (branchaggregatedSales[itemDate]) {
-            branchaggregatedSales[itemDate] += item.total;
-          } else {
-            branchaggregatedSales[itemDate] = item.total;
-          }
-      });
+const branchdates = [];
+const branchtotalSales = [];
 
-  // Extract dates and total sales for chart
-  const branchcurrentDate = new Date();
-  const branchsixDaysAgo = new Date(branchcurrentDate);
-  branchsixDaysAgo.setDate(branchcurrentDate.getDate() - 6);
+for (let i = 0; i < 7; i++) {
+    const branchdate = new Date(branchsixDaysAgo);
+    branchdate.setDate(branchsixDaysAgo.getDate() + i);
+    const branchformattedDate = branchdate.toLocaleDateString();
+    branchdates.push(branchformattedDate);
+    branchtotalSales.push(branchaggregatedSales[branchformattedDate] || 0); 
+}
 
-  const branchdates = [];
-  const branchtotalSales = [];
-
-  for (let i = 0; i < 7; i++) {
-      const branchdate = new Date(branchsixDaysAgo);
-      branchdate.setDate(branchsixDaysAgo.getDate() + i);
-      const branchformattedDate = branchdate.toLocaleDateString();
-      branchdates.push(branchformattedDate);
-      branchtotalSales.push(branchaggregatedSales[branchformattedDate] || 0); 
-  }
   return (
     <div className='container'>
         <div style = {{ overflowY: 'auto', flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100%', justifyContent: 'center', alignItems: 'flex-start'}}>
@@ -279,10 +261,10 @@ export default function Sales() {
                   <TableSortLabel
                     className='headerCell'
                      style={{
-                      color: ordersBy === 'date' ? '#000' : '#fff'
+                      color: orderBy === 'date' ? '#000' : '#fff'
                     }}
-                    active={ordersBy === 'date'}
-                    direction={ordersBy === 'date' ? order : 'asc'}
+                    active={orderBy === 'date'}
+                    direction={orderBy === 'date' ? order : 'asc'}
                     onClick={() => handleRequestSort('date')}
                   >
                     Date
@@ -292,10 +274,10 @@ export default function Sales() {
                   <TableSortLabel
                     className='headerCell'
                      style={{
-                      color: ordersBy === 'transId' ? '#000' : '#fff'
+                      color: orderBy === 'transId' ? '#000' : '#fff'
                     }}
-                    active={ordersBy === 'transId'}
-                    direction={ordersBy === 'transId' ? order : 'asc'}
+                    active={orderBy === 'transId'}
+                    direction={orderBy === 'transId' ? order : 'asc'}
                     onClick={() => handleRequestSort('transId')}
                     
                   >
@@ -306,10 +288,10 @@ export default function Sales() {
                   <TableSortLabel
                     className='headerCell'
                     style={{
-                      color: ordersBy === 'noitem' ? '#000' : '#fff'
+                      color: orderBy === 'noitem' ? '#000' : '#fff'
                     }}
-                    active={ordersBy === 'noitem'}
-                    direction={ordersBy === 'noitem' ? order : 'asc'}
+                    active={orderBy === 'noitem'}
+                    direction={orderBy === 'noitem' ? order : 'asc'}
                     onClick={() => handleRequestSort('noitem')}
                   >
                     No. of Items
@@ -319,10 +301,10 @@ export default function Sales() {
                   <TableSortLabel
                    className='headerCell'
                     style={{
-                      color: ordersBy === 'branch' ? '#000' : '#fff'
+                      color: orderBy === 'branch' ? '#000' : '#fff'
                     }}
-                    active={ordersBy === 'branch'}
-                    direction={ordersBy === 'branch' ? order : 'asc'}
+                    active={orderBy === 'branch'}
+                    direction={orderBy === 'branch' ? order : 'asc'}
                     onClick={() => handleRequestSort('branch')}
                   >
                     Branch
@@ -332,10 +314,10 @@ export default function Sales() {
                   <TableSortLabel
                    className='headerCell'
                     style={{
-                    color: ordersBy === 'total' ? '#000' : '#fff'
+                    color: orderBy === 'total' ? '#000' : '#fff'
                     }}
-                    active={ordersBy === 'total'}
-                    direction={ordersBy === 'total' ? order : 'asc'}
+                    active={orderBy === 'total'}
+                    direction={orderBy === 'total' ? order : 'asc'}
                     onClick={() => handleRequestSort('total')}
                   >
                     Total
@@ -394,7 +376,7 @@ export default function Sales() {
             
         >
             <>
-                <Form transId={transid} sales={sales}/>
+                <Form close={() => setIsModalOpen(false)} transId={transid} sales={sales}/>
             <FontAwesomeIcon onClick={() => setIsModalOpen(false)} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
             </>
         </Modal>

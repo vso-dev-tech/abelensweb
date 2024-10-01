@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../admin.css';
 import '../../../../index.css';
-import { getDocs, query,collection, where, limit, startAfter } from '@firebase/firestore';
+import { getDoc, doc } from '@firebase/firestore';
 import { db } from '../../../../firebase/index';
 import { 
     Button, MenuItem, Modal, Paper, Select, Table, 
@@ -46,38 +46,28 @@ export default function Inventory() {
     const [branch, setBranch] = useState<string>('Abelens');
 
     useEffect(() => {
-     
-      fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supplier, branch, page, rowsPerPage]);
-  
-  const fetchData = async () => {
-    try {
-        const baseQuery = query(collection(db, branch, supplier), where('active', '==', true));
+        fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [supplier, branch]);
 
-        const paginatedQuery = query(
-            baseQuery,
-            limit(rowsPerPage),
-            startAfter(page * rowsPerPage)
-        );
+    const fetchData = async () => {
+        try {
+            const docRef = doc(db, branch, supplier);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data() as any;
+                const filterActive = data.data.filter((item: inventory) => item.active === true);
+                setLength(data.data.length);
+                setRows(filterActive);
+            } else {
+                console.log('Document does not exist!');
+                alert('No data exists with selected supplier');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
 
-        const querySnapshot = await getDocs(paginatedQuery);
-        const newData: inventory[] = [];
-        let totalLength = 0;
-
-        querySnapshot.forEach((doc) => {
-            const data = doc.data() as inventory;
-            newData.push(data);
-            totalLength++;
-        });
-
-        setLength(totalLength);
-        setRows(newData);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-};
-  
     const handleRequestSort = (property: keyof inventory) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrderBy(property);
@@ -212,18 +202,15 @@ export default function Inventory() {
                         ADD NEW ITEM
                     </Button>
                 </div>
-                <Modal open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
+            </div>
+            <Modal open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
                     <div className='modalContainer'>
-                        <div className='header'>
-                            <h2>{modalData ? 'EDIT ITEM' : 'ADD ITEM'}</h2>
-                            <Button onClick={() => setIsAddModalOpen(false)} sx={{ cursor: 'pointer', padding: 2, color: '#000' }}>
-                                <FontAwesomeIcon icon={faClose} />
+                            <Button onClick={() => setIsAddModalOpen(false)} sx={{ cursor: 'pointer', padding: 2, color: '#fff', position: 'absolute', right: 0 }}>
+                                <FontAwesomeIcon icon={faClose} size='xl' />
                             </Button>
-                        </div>
                         <Form onSubmit={() => {fetchData(); setIsAddModalOpen(false)}} onClick={() =>{ setIsAddModalOpen(false); fetchData(); setModalData(null)}} modalData = {modalData} selectedBranch = {branch} length = {length} />
                     </div>
                 </Modal>
-            </div>
         </div>
     );
 }

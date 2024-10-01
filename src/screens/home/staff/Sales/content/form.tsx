@@ -1,10 +1,7 @@
-import {Button, Card, CardContent, Stack, TextField, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, makeStyles, Typography } from '@mui/material'
-import React, { useContext, useState } from 'react'
-import FormHeader from 'screens/components/FormHeader';
-import { appuserdata, inventory, sales, salesdetails } from 'types/interfaces';
-import {Timestamp, where} from "firebase/firestore";
-import { AuthContext } from 'auth';
-import { collection, onSnapshot, getDocs } from 'firebase/firestore';
+import {Card, CardContent, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
+import React, {  } from 'react'
+import { appuserdata, sales, salesdetails } from 'types/interfaces';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import './focus.css'
 type Props = {
@@ -14,14 +11,9 @@ type Props = {
 }
 
 export default function Form({transId, sales}: Props) {
-    const {currentUser} = useContext(AuthContext)
-    const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
-    const [modalData, setModalData] = React.useState<salesdetails | null | undefined>()
-    const [searchQuery, setSearchQuery] = React.useState('');
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5); // You can adjust the number of rows per page here
-    const [orderBy, setOrderBy] = React.useState<keyof salesdetails>('docId');
-    const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
+    
+    const [orderBy] = React.useState<keyof salesdetails>('docId');
+    const [order] = React.useState<'asc' | 'desc'>('asc');
     const [rows, setrow] = React.useState<salesdetails[]>([])
     const [userdetails, setuserdetails] = React.useState<appuserdata>()
     React.useEffect(() => {
@@ -67,15 +59,6 @@ export default function Form({transId, sales}: Props) {
         fetchData();
     
     }, [sales]);
-
-//   transId: number,
-//   itemno: string,
-//   unit: number,
-//   itemname: string,
-//   docId: string,
-//   unitprice: number,
-
-const [isFocused, setIsFocused] = useState(false);
 
   return (
     <div style = {{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 75, flexDirection: 'column',}}>
@@ -129,8 +112,21 @@ const [isFocused, setIsFocused] = useState(false);
                     active={orderBy === 'unitprice'}
                     direction={orderBy === 'unitprice' ? order : 'asc'}
                   >
+                    Unit Price
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                   className='headerCell'
+                    style={{
+                      color: orderBy === 'unitprice' ? '#000' : '#fff'
+                    }}
+                    active={orderBy === 'unitprice'}
+                    direction={orderBy === 'unitprice' ? order : 'asc'}
+                  >
                     Total
                   </TableSortLabel>
+                  
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -141,7 +137,7 @@ const [isFocused, setIsFocused] = useState(false);
                   <TableCell>{row.itemname}</TableCell>
                   <TableCell>{row.unit}</TableCell>
                   <TableCell>₱{row.unitprice}</TableCell>
-                  
+                  <TableCell>₱{row.unitprice * row.unit}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

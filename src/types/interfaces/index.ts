@@ -23,6 +23,7 @@ export interface appuserdata {
 
 export interface sales {
   branch: string,
+  transId: number,
   date: firestore.Timestamp,
   discount: number,
   docId: string,
@@ -30,7 +31,6 @@ export interface sales {
   staffId: string,
   subtotal: number,
   total: number,
-  transId: number,
 }
 
 export interface salesdetails {

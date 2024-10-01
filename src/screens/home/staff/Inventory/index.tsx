@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import '../admin.css'
 import '../../../../index.css'
-import { query, collection, limit, where, startAfter, getDocs } from '@firebase/firestore';
+import { doc, getDoc } from '@firebase/firestore';
 import { db } from '../../../../firebase/index'
 import { MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
 import { inventory } from 'types/interfaces';
@@ -26,42 +26,35 @@ export default function StaffInventory() {
   const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
   const [rows, setrow] = React.useState<inventory[]>([])
   const [supplier, setsupplier] = React.useState<string>('manilajd')
-  const [branch, setbranch] = React.useState<string>('Abelens')
+  const [branch] = React.useState<string>(currentUser?.branch || 'Abelens')
 
   React.useEffect(() => {
-
-    const fetchData = async () => {
-      try {
-        const baseQuery = query(collection(db, currentUser?.branch || '', supplier), where('active', '==', true));
-
-        // Apply pagination
-        const paginatedQuery = query(
-          baseQuery,
-          limit(rowsPerPage),
-          startAfter(page * rowsPerPage)
-        );
-
-        const querySnapshot = await getDocs(paginatedQuery);
-        const newData: inventory[] = [];
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data() as inventory;
-          newData.push(data);
-        });
-
-        setrow(newData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
     fetchData();
-  }, [supplier, branch, page, rowsPerPage, currentUser?.branch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supplier, branch]);
 
-  const handleRequestSort = (property: keyof inventory) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrderBy(property);
-    setOrder(isAsc ? 'desc' : 'asc');
+  const fetchData = async () => {
+      try {
+          const docRef = doc(db, branch, supplier);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+              const data = docSnap.data() as any;
+              const filterActive = data.data.filter((item: inventory) => item.active === true);
+              setrow(filterActive);
+          } else {
+              console.log('Document does not exist!');
+              alert('No data exists with selected supplier');
+          }
+      } catch (error) {
+          console.error('Error fetching data:', error);
+      }
   };
+
+    const handleRequestSort = (property: keyof inventory) => {
+      const isAsc = orderBy === property && order === 'asc';
+      setOrderBy(property);
+      setOrder(isAsc ? 'desc' : 'asc');
+    };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -101,7 +94,6 @@ export default function StaffInventory() {
         <p>SELECTED BRANCH: </p>
         <Select
           value={currentUser?.branch}
-          onChange={(e) => setbranch(e.target.value)}
           sx={{ width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700 }}
         >
           <MenuItem value={currentUser?.branch} key={0} >{currentUser?.branch} Branch</MenuItem>

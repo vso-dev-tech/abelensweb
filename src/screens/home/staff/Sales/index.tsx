@@ -1,7 +1,7 @@
 import React from 'react'
 import '../admin.css'
 import '../../../../index.css'
-import { collection, onSnapshot, orderBy, limit, query, startAfter, where } from '@firebase/firestore';
+import { doc, onSnapshot } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
 import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
 import { sales } from 'types/interfaces';
@@ -44,50 +44,38 @@ export default function StaffSales() {
     const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
 
     React.useEffect(() => {
-      const baseQuery =  query(collection(db, 'sales'), where('branch', '==', branch));
+      const salesDocRef = doc(db, 'sales', 'sales'); // Reference to the sales document
+      const unsubscribe = onSnapshot(salesDocRef, (doc) => {
+          if (doc.exists()) {
+              const salesData = doc.data().sales || []; // Get the sales array
+              
+              const newData: sales[] = [];
+              const branchinventorysales: sales[] = [];
   
-      const paginatedQuery = query(
-          baseQuery,
-          orderBy(ordersBy),
-          limit(rowsPerPage),
-          startAfter(page * rowsPerPage)
-      );
+              salesData.forEach((data: sales) => {
+                  
+                  if (data.branch === branch) {
+                      branchinventorysales.push(data);
+                  }
   
-      const unsubscribe = onSnapshot(paginatedQuery, (snapshot) => {
-          const newData: sales[] = [];
-          snapshot.forEach((doc) => {
-              const data = doc.data() as sales;
-              newData.push(data);
-          });
-          setrow(newData);
+                  if (branch !== 'All') {
+                      if (data.branch === branch) {
+                          newData.push(data);
+                      }
+                  } else {
+                      newData.push(data);
+                  }
+              });
+              console.log(newData)
+              setrow(newData);
+              setweeklytotalsales(branchinventorysales);
+          } else {
+              console.error('Sales document does not exist');
+          }
       });
   
-      return () => unsubscribe();
-  }, [branch, page, rowsPerPage, ordersBy]);
-
-  React.useEffect(() => {
-    const currentDate = new Date();
-    const sixDaysAgo = new Date(new Date().setDate(currentDate.getDate() - 6));
-
-    const baseQuery = query(collection(db, 'sales'), where('branch', '==', branch));
-    const paginatedQuery = query(
-        baseQuery,
-        where('date', '>=', sixDaysAgo),
-        where('date', '<=', currentDate),
-        orderBy('date')
-    );
-
-    const unsubscribe = onSnapshot(paginatedQuery, (snapshot) => {
-        const weeklydata: sales[] = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data() as sales;
-            weeklydata.push(data);
-        });
-        setweeklytotalsales(weeklydata);
-    });
-
-    return () => unsubscribe();
-}, [branch]);
+      return () => unsubscribe(); // Clean up the listener on unmount
+  }, [branch]);
 
     const handleRequestSort = (property: keyof Row) => {
       const isAsc = ordersBy === property && order === 'asc';
