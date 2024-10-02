@@ -1,16 +1,10 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import '../../admin.css'
 import '../../../../../index.css'
-import { collection, onSnapshot } from '@firebase/firestore';
-import {db} from '../../../../../firebase/index'
-import { Button, Card, CardContent, Modal, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
-import { appuserdata, flightdata, sales } from 'types/interfaces';
+import { Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel } from '@mui/material'
+import { appuserdata } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
-import firestore from '@firebase/firestore'
-import { BarChart } from '@mui/x-charts';
-import Form from './form';
-import { AuthContext } from 'auth';
+import { faEye } from '@fortawesome/free-solid-svg-icons';
 type Props = {
 
     data: appuserdata[],
@@ -22,15 +16,12 @@ type Props = {
 export default function SettingTable({data, handleView}: Props) {
 
     const rows: appuserdata[] = data
-    const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
-    const [modalData, setModalData] = React.useState<appuserdata | null | undefined>()
 
-    const [searchQuery, setSearchQuery] = React.useState('');
+    const [searchQuery] = React.useState('');
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5); // You can adjust the number of rows per page here
     const [orderBy, setOrderBy] = React.useState<keyof appuserdata>('uid');
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
-    const {currentUser} = useContext(AuthContext)
     const handleRequestSort = (property: keyof appuserdata) => {
       const isAsc = orderBy === property && order === 'asc';
       setOrderBy(property);
@@ -137,9 +128,9 @@ export default function SettingTable({data, handleView}: Props) {
                 : sortedRows
               ).map((row, index) => (
                 <TableRow key={index}>
-                  <TableCell>{row.active == true ? 'Yes' : 'No'}</TableCell>
+                  <TableCell>{row.active === true ? 'Yes' : 'No'}</TableCell>
                   <TableCell>{row.username}</TableCell>
-                  <TableCell>{row.restrict == true ? 'Restricted' : 'Not Restricted'}</TableCell>
+                  <TableCell>{row.restrict === true ? 'Restricted' : 'Not Restricted'}</TableCell>
                   <TableCell>{new Date(row.lastLoggedIn?.toDate()).toISOString() || ''}</TableCell>
                   <TableCell sx={{cursor: 'pointer'}} onClick={() => handleView(row)}>
                   <FontAwesomeIcon icon={faEye} width={50} height={50} />
