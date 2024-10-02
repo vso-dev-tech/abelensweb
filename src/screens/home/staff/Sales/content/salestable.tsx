@@ -1,32 +1,17 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import '../../admin.css'
 import '../../../../../index.css'
-import { collection, getDocs, query, where, getDoc, doc } from '@firebase/firestore';
-import {db} from '../../../../../firebase/index'
-import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
-import { flightdata, inventory, sales } from 'types/interfaces';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
+import { inventory } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
-import { AuthContext } from 'auth';
-import { Prev } from 'react-bootstrap/esm/PageItem';
+import { faMinus, faTrash } from '@fortawesome/free-solid-svg-icons';
 type Props = {
 
     data: inventory[],
     removeItem: (e: number) => void,
+    removeAllItem: (e: number) => void,
 }
 
-interface Row {
-    branch: string,
-    date: Date,
-    discount: number,
-    docId: string,
-    noitem: number,
-    staffId: string,
-    subtotal: number,
-    total: number,
-    transId: number,
-  }
- 
   export const menu: string[] = [
     'manilajd',
     'nicolasabelrdo',
@@ -36,80 +21,38 @@ interface Row {
     'kenns',
   ]
 
-export default function SalesTable({data, removeItem}: Props) {
+export default function SalesTable({data, removeItem, removeAllItem}: Props) {
 
-    
-    const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
-    const [modalData, setModalData] = React.useState<inventory | null | undefined>();
-    const {currentUser} = useContext(AuthContext)
-		const [isAddModalOpen, setisAddModalOpen] = React.useState<boolean>(false)
-    const [searchQuery, setSearchQuery] = React.useState('');
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(1000); // You can adjust the number of rows per page here
-    const [orderBy, setOrderBy] = React.useState<keyof inventory>('docId');
-    const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
     const [rows, setrow] = React.useState<inventory[]>(data)
-    const [supplier, setsupplier] = React.useState<string>('manilajd')
-    const [branch, setbranch] = React.useState<string>('Abelens')
-		const [discount, setdiscount] = React.useState<number>(0)
 		const [total, setotal] = React.useState<number[]>([])
 
     useEffect(() => {
         setrow(data)
     },[data])
 
-    const handleRequestSort = (property: keyof inventory) => {
-      const isAsc = orderBy === property && order === 'asc';
-      setOrderBy(property);
-      setOrder(isAsc ? 'desc' : 'asc');
-    };
-  
-    const filteredRows = rows.filter(row => {
-      // Convert Firestore Timestamp to JavaScript Date object
-      const date = new Date(row.date?.seconds * 1000 + row.date?.nanoseconds / 1000000);
-  
-      const dateString = date.toLocaleDateString('en-US').toLowerCase();
-      const itemNameLowerCase = row.itemname?.toLowerCase();
-
-      // Check if the date string includes the search query
-      return dateString.includes(searchQuery.toLowerCase()) || 
-          row.itemno?.toString().includes(searchQuery.toLowerCase()) || 
-          (itemNameLowerCase && itemNameLowerCase.includes(searchQuery.toLowerCase()));
+    const groupedItems = React.useMemo(() => {
+      const items: { [itemno: string]: inventory[] } = {};
+      rows.forEach(item => {
+        if (!items[item.itemno]) {
+          items[item.itemno] = [item];
+        } else {
+          items[item.itemno].push(item);
+        }
       });
-  
-  
-  
-    const sortedRows = filteredRows.sort((a, b) => {
-      const isAsc = order === 'asc';
-      if (a[orderBy] < b[orderBy]) return isAsc ? -1 : 1;
-      if (a[orderBy] > b[orderBy]) return isAsc ? 1 : -1;
-      return 0;
-    });
-
-    const groupedItems: { [itemno: string]: inventory[] } = {};
-        rows.forEach(item => {
-            if (!groupedItems[item.itemno]) {
-                groupedItems[item.itemno] = [item];
-            } else {
-                groupedItems[item.itemno].push(item);
-            }
-	});
+      return items;
+    }, [rows]);
 
 	useEffect(() => {
 		const newTotals = Object.keys(groupedItems).map(item => {
 			const items = groupedItems[item];
-			// Calculate the total price for all items in the group
 			const totalPrice = items.reduce((acc, currentItem) => {
-				return acc + (currentItem.unitprice);
+        
+				return currentItem.sellingprice * items.length;
 			}, 0);
 			return Math.floor(totalPrice);
 		});
 		setotal(newTotals);
-	}, [rows]);
-
-	const totalSum = total.reduce((acc, currentValue) => acc + currentValue, 0);
-	const withDiscount = totalSum - discount
-
+	}, [groupedItems, rows]);
 
 	const [screenHeight, setScreenHeight] = React.useState(window.innerHeight); // Initial screen width
 
@@ -136,7 +79,7 @@ export default function SalesTable({data, removeItem}: Props) {
   return (
     <div style = {{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginTop: 30, flexDirection: 'column', height: chartHeight}}>
         <div style={{overflow: 'hidden', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '95%'}} >
-        <TableContainer component={Paper} sx={{width: 800,outline: 'none', '&:focus': { border: 'none' }, overflowY: 'scroll', height: '100%'}}>
+        <TableContainer component={Paper} sx={{width: 900,outline: 'none', '&:focus': { border: 'none' }, overflowY: 'scroll', height: '100%'}}>
         <Table>
             <TableHead sx={{backgroundColor: '#fff'}}>
               <TableRow>
@@ -177,7 +120,7 @@ export default function SalesTable({data, removeItem}: Props) {
 										color: '#000'
 										}}
                   >
-                    Unit Price
+                    Total
                   </TableSortLabel>
                 </TableCell>
               </TableRow>
@@ -187,11 +130,13 @@ export default function SalesTable({data, removeItem}: Props) {
                 Object.keys(groupedItems).map((item, index) => {
                 const items = groupedItems[item];
                 return (
-                <TableRow key={index} sx={{cursor: 'pointer', height: 50, justifyContent: 'center', alignItems: 'center'}} onClick={() => removeItem(items[0].itemno)}>
+                <TableRow key={index} sx={{cursor: 'pointer', height: 50, justifyContent: 'center', alignItems: 'center'}}>
                     <TableCell sx={{height: 10}}>{item}</TableCell>
                     <TableCell sx={{height: 10, width: '100%', textAlign: 'center'}}>{items.map((item, index) => index === 0 ? item.itemname : null)}</TableCell>
                     <TableCell sx={{height: 10}}>{items.length}</TableCell>
                     <TableCell sx={{height: 10}}>₱{total[index]}</TableCell>
+                    <TableCell onClick={() => removeItem(items[0].itemno)} sx={{height: 10, width: '100%', textAlign: 'center'}}><FontAwesomeIcon icon={faMinus} color='grey'/></TableCell>
+                    <TableCell onClick={() => removeAllItem(items[0].itemno)} sx={{height: 10, width: '100%', textAlign: 'center'}}><FontAwesomeIcon icon={faTrash} color='red'/></TableCell>
                 </TableRow>
                 );
                 })

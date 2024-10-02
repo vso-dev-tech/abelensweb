@@ -1,6 +1,6 @@
-import {getDocs,collection, setDoc, doc} from '@firebase/firestore'
+import {getDocs,collection} from '@firebase/firestore'
 import { db } from '..';
-import { disabledform, disastercenter, disasterdata, flightdata, smsdata } from 'types/interfaces';
+import { disabledform, flightdata } from 'types/interfaces';
 
 
 export const generateRandomKey = (length: number) => {

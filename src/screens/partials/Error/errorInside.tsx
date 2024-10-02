@@ -3,9 +3,7 @@ import { AuthContext } from 'auth'
 import React, { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-type Props = {}
-
-function ErrorInside({}: Props) {
+function ErrorInside() {
     const {currentUser} = useContext(AuthContext)
     const navigate = useNavigate()
 

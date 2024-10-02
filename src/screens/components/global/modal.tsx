@@ -1,6 +1,5 @@
 import React from 'react';
 import '../styles/components.css';
-import { children } from 'types/interfaces';
 
 type Props = {
     isOpen: boolean,

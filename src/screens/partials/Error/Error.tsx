@@ -1,11 +1,7 @@
-import React, { useContext, useEffect } from 'react'
+import React from 'react'
 import ErrorInside from './errorInside'
-import { AuthContext } from 'auth'
-import { Navigate } from 'react-router-dom'
 
-type Props = {}
-
-export default function Error({}: Props) {
+export default function Error() {
     
   return (
     <div className='container'> 

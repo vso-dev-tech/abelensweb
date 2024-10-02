@@ -1,9 +1,8 @@
 
-import React, {useState} from "react";
+import React from "react";
 import { Link } from 'react-router-dom';
 import '../../styles/components.css'
-import { Icon } from "@mui/material";
-import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 type Props = {
     item: Items,
@@ -21,7 +20,6 @@ type Items = {
 
  const NavBarItems: React.FC<Props> = ({ item, active, onClick}) => {
 
-    const [hover, setHover] = useState(false);
     return (
         <Link
             onClick={onClick}

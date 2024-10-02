@@ -1,8 +1,8 @@
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import React, { FormEventHandler } from 'react'
+import React from 'react'
 import '../styles/components.css'
-import { Link, LinkProps, To } from 'react-router-dom'
+import { Link, To } from 'react-router-dom'
 type Props = {
 	icon: IconDefinition,
 	color?: string,

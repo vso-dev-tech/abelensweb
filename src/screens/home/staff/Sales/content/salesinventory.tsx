@@ -1,31 +1,21 @@
 import React, { useContext } from 'react'
 import '../../admin.css'
 import '../../../../../index.css'
-import { collection, getDocs, query, where, getDoc, doc } from '@firebase/firestore';
+import { getDoc, doc, Timestamp } from '@firebase/firestore';
 import {db} from '../../../../../firebase/index'
-import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
-import { flightdata, inventory, sales } from 'types/interfaces';
+import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
+import { inventory } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faClose } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from 'auth';
 type Props = {
 
   data: (e: inventory) => void,
+  excess: boolean,
+  returnexcess: (e: boolean) => void,
 
 }
 
-interface Row {
-    branch: string,
-    date: Date,
-    discount: number,
-    docId: string,
-    noitem: number,
-    staffId: string,
-    subtotal: number,
-    total: number,
-    transId: number,
-  }
- 
   export const menu: string[] = [
     'manilajd',
     'nicolasabelrdo',
@@ -35,26 +25,39 @@ interface Row {
     'kenns',
   ]
 
-export default function SalesInventory({data}: Props) {
+export default function SalesInventory({data, excess, returnexcess}: Props) {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
-    const [modalData, setModalData] = React.useState<inventory | null | undefined>();
     const {currentUser} = useContext(AuthContext)
-		const [isAddModalOpen, setisAddModalOpen] = React.useState<boolean>(false)
     const [searchQuery, setSearchQuery] = React.useState('');
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(12); // You can adjust the number of rows per page here
     const [orderBy, setOrderBy] = React.useState<keyof inventory>('docId');
     const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
     const [rows, setrow] = React.useState<inventory[]>([])
+    const [addeditem, setaddeditem] = React.useState<inventory>({
+      active: true,
+      date: Timestamp.fromDate(new Date()),
+      docId: '',
+      sellingprice: 0,
+      itemname: '',
+      itemno: 0,
+      stocks: 0,
+      unitprice: 0,
+      unitsales: 0,
+      branch: '',
+      supplier: '',
+      data: '',
+    })
     const [supplier, setsupplier] = React.useState<string>('manilajd')
-    const [branch, setbranch] = React.useState<string>('Abelens')
+    const [quantity, setQuantity] = React.useState<number>(0);
+    const pressTimer = React.useRef<NodeJS.Timeout | null>(null);
+
     React.useEffect(() => {
-     
-  
       fetchData();
-    }, [supplier, branch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [supplier]);
   
   
     const fetchData = async () => {
@@ -63,10 +66,10 @@ export default function SalesInventory({data}: Props) {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data() as any;
-            console.log(data.data);
-            setrow(data.data)
+            const filterActive = data.data.filter((item: inventory )=> {return item.active === true} )
+
+            setrow(filterActive)
         } else {
-            console.log('Document does not exist!');
             alert('No data exists with selected supplier')
         }
       } catch (error) {
@@ -95,7 +98,6 @@ export default function SalesInventory({data}: Props) {
       const dateString = date.toLocaleDateString('en-US').toLowerCase();
       const itemNameLowerCase = row.itemname?.toLowerCase();
 
-      // Check if the date string includes the search query
       return dateString.includes(searchQuery.toLowerCase()) || 
           row.itemno?.toString().includes(searchQuery.toLowerCase()) || 
           (itemNameLowerCase && itemNameLowerCase.includes(searchQuery.toLowerCase()));
@@ -115,12 +117,48 @@ export default function SalesInventory({data}: Props) {
         alert('Please inform the main office for all low stock items')
       }
       if(stocks !== 0){
-        data(id)
+        if(!excess){
+          data(id)
+        } else {
+          returnexcess(false)
+          return
+        }
       } else {
         alert('You have no remaining stock of this item')
         return
       }
     }
+    const handleMouseUp = () => {
+      clearTimeout(pressTimer.current!);
+    };
+
+    const handleModalClose = () => {
+      setIsModalOpen(false);
+      setQuantity(0); // Reset quantity state
+      clearTimeout(pressTimer.current!);
+    };
+
+    const handleItemClick = (item: inventory, stocks: number) => {
+      pressTimer.current = setTimeout(() => {
+        setaddeditem(item)
+        setIsModalOpen(true);
+      }, 1000); // Adjust the duration of the long press as needed
+    };
+
+    const handleAddItems = () => {
+
+      if (quantity > 0) {
+        if(addeditem.stocks < quantity){
+          alert('Stock is lower than the added quantity')
+          return
+        }
+        for (let i = 0; i < quantity; i++) {
+          selectItem(addeditem, addeditem.stocks);
+        }
+        setIsModalOpen(false);
+        setQuantity(0); // Reset quantity state
+      }
+    };
   
 
 
@@ -129,7 +167,6 @@ export default function SalesInventory({data}: Props) {
         <p>SELECTED SUPPLIER: </p>
         <div style={{display:'flex', justifyContent: 'flex-start', alignItems: 'flex-start', flexDirection: 'row', width: '95%'}}>
           <Select 
-          defaultValue={'MANILAJD'}
           value = {supplier}
           onChange={(e) => setsupplier(e.target.value)}
           sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700}}
@@ -218,6 +255,19 @@ export default function SalesInventory({data}: Props) {
                     Unit Price
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                   className='headerCell'
+                    style={{
+                    color: orderBy === 'sellingprice' ? '#000' : '#fff'
+                    }}
+                    active={orderBy === 'sellingprice'}
+                    direction={orderBy === 'sellingprice' ? order : 'asc'}
+                    onClick={() => handleRequestSort('sellingprice')}
+                  >
+                    Selling Price
+                  </TableSortLabel>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -225,13 +275,15 @@ export default function SalesInventory({data}: Props) {
                 ? sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 : sortedRows
               ).map((row, index) => (
-                <TableRow sx={{cursor: 'pointer', height: 50, backgroundColor: row.stocks == 0 ? 'pink' : index % 2 ? '#d9d9d9' : '#fff'}} onClick = {() => {selectItem(row, row.stocks)}}key={index}>
+                <TableRow onMouseUp = {handleMouseUp} onMouseDown = {() => handleItemClick(row, row.stocks)} sx={{cursor: 'pointer', height: 50, backgroundColor: row.stocks < 5 ? 'pink' : index % 2 ? '#d9d9d9' : '#fff'}} onClick = {() => {selectItem(row, row.stocks)}}key={index}>
                   
                   <TableCell>{new Date(row.date?.toDate()).toLocaleDateString() || ''}</TableCell>
                   <TableCell sx={{height: 10}}>{row.itemno}</TableCell>
                   <TableCell sx={{height: 10, width: '100%'}}>  {row.itemname.length > 25 ? `${row.itemname.substring(0, 22)}...` : row.itemname}</TableCell>
 									<TableCell sx={{height: 10}}>{row.stocks}</TableCell>
                   <TableCell sx={{height: 10}}>₱{row.unitprice}</TableCell>
+                  <TableCell sx={{height: 10}}>₱{row.sellingprice}</TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
@@ -248,7 +300,22 @@ export default function SalesInventory({data}: Props) {
             />
           </div>
         </TableContainer>
-					</div>
+      </div>
+      <Modal onClose={handleModalClose} open = {isModalOpen} >
+			<div style = {{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 75, width: '100%', height: 500}}>
+				<Card>
+					<CardContent sx = {{padding: 5, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column',  height: 450}}>
+            <h1>Specify Quantity</h1>
+						<TextField
+              value={quantity}
+              onChange={(e) => setQuantity(parseInt(e.target.value))}
+            />
+            <Button onClick={handleAddItems} >Add Quantity</Button>
+					</CardContent>
+				</Card>
+        <FontAwesomeIcon onClick={handleModalClose} icon={faClose} style={{color: '#fff', position: 'absolute', top: 20, right: 20, cursor: 'pointer', width: 25, height: 25}} />
+			</div>
+		</Modal>
     </div>
   )
 }

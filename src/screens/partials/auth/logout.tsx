@@ -1,18 +1,18 @@
 import { AuthContext } from 'auth'
 import { signOut } from 'firebase/auth'
 import React, { useContext } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { auth } from '../../../firebase/index';
 import { Button, Card, CardContent } from '@mui/material';
-type Props = {}
 
-export default function Logout({}: Props) {
+export default function Logout() {
 
 
     const {currentUser} = useContext(AuthContext)
     const navigate = useNavigate()
     React.useEffect(() => {
         checkUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     const checkUser = async() => {
 

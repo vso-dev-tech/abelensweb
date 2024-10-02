@@ -1,10 +1,10 @@
 import { Button, Card, CardContent, MenuItem, Select, Stack, TextField } from '@mui/material';
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import FormHeader from 'screens/components/FormHeader';
 import { inventory } from 'types/interfaces';
 import {Timestamp} from "firebase/firestore";
 import { AuthContext } from 'auth';
-import { collection, onSnapshot, doc, setDoc, addDoc, getDoc, updateDoc } from '@firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc } from '@firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import { generateRandomKey } from '../../../../../firebase/function';
 type Props = {
@@ -26,9 +26,8 @@ const menu: string[] = [
 export default function Form({onClick, modalData, onSubmit}: Props) {
 
     const {currentUser} = useContext(AuthContext)
-    const [opensuccess, setopensuccess] = React.useState<boolean>(false)
-    const [submitted, setsubmitted] = React.useState<boolean>(false)
-	const [csv, setcsv] = React.useState<inventory[]>([])
+    const [opensuccess] = React.useState<boolean>(false)
+    const [submitted] = React.useState<boolean>(false)
     const [form, setform] = React.useState<inventory>({
         active: modalData?.active || true,
         date:modalData?.date || Timestamp.fromDate(new Date()),
@@ -39,7 +38,8 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
         unitprice: modalData?.unitprice ||1,
         unitsales: modalData?.unitsales ||0,
 		branch: modalData?.branch ||'Abelens',
-		supplier: modalData?.supplier || 'manilajd'
+		supplier: modalData?.supplier || 'manilajd',
+		sellingprice: modalData?.sellingprice || 0
     })
 
     const submit = async () => {
@@ -78,7 +78,8 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 					unitprice: 1,
 					unitsales: 0,
 					branch: 'Abelens',
-					supplier: 'manilajd'
+					supplier: 'manilajd',
+					sellingprice: 0,
 				});
 				onSubmit()
 			} else {
@@ -110,7 +111,20 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 					};
 	
 					// Update the 'data' field in the document
-					await updateDoc(branchRef, { data: existingData });
+					await updateDoc(branchRef, { data: existingData })
+					setform({
+						active: true,
+						date: Timestamp.fromDate(new Date()),
+						docId: '',
+						itemname: '',
+						itemno: 0,
+						stocks: 1,
+						unitprice: 1,
+						unitsales: 0,
+						branch: 'Abelens',
+						supplier: 'manilajd',
+						sellingprice: 0,
+					});
 					onSubmit()
 					alert('Successfully updated inventory item!');
 				} else {
@@ -126,12 +140,12 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 	
 
 	React.useEffect(() => {
-		const unsubscribe = onSnapshot(collection(db, 'inventory'), (snapshot) => {
+		const unsubscribe = onSnapshot(collection(db, currentUser?.branch || ''), (snapshot) => {
 			let maxItemNo = 0;
 			snapshot.forEach((doc) => {
 				const data = doc.data();
 				if (data && Array.isArray(data.data)) {
-					const docMaxItemNo = data.data.reduce((max, item) => (item.itemno > max ? item.itemno : max), 0);
+					const docMaxItemNo = data.data.length
 					if (docMaxItemNo > maxItemNo) {
 						maxItemNo = docMaxItemNo;
 					}
@@ -144,7 +158,7 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 		});
 	
 		return () => unsubscribe();
-	}, []);
+	}, [currentUser?.branch, form.itemno]);
 
 
 

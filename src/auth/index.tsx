@@ -2,16 +2,8 @@ import { createContext, useEffect, useState } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "@firebase/auth";
 import React from "react";
-import { collection, getDoc, getDocs } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { logindata } from "types/interfaces";
-
-// Define the type for your user
-type User = {
-  uid: string;
-  displayName: string | null;
-  email: string | null;
-  photoURL: string | null | undefined;
-};
 
 type AuthContextType = {
   currentUser: logindata | null | undefined;
@@ -25,24 +17,22 @@ export const AuthContext = createContext<AuthContextType>({
   currentUser: null,
 });
 
-// AuthContextProvider component
 export const AuthContextProvider: React.FC<Children> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<logindata | null>();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async(user) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const data = await getDocs(collection(db, 'user'));
-        const thisdata: logindata[] = []
-        data.forEach((doc) => {
-          const data = doc.data() as logindata
-          if (data.uid === user.uid) {
-            thisdata.push(data)
-          }
-        });
-        setCurrentUser(thisdata[0])
+        const userDocRef = doc(db, 'user', user.uid); 
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const data = userDoc.data() as logindata; 
+          setCurrentUser(data);
+        } else {
+          setCurrentUser(null);
+        }
       } else {
-       setCurrentUser(null)
+        setCurrentUser(null);
       }
     });
 
@@ -50,7 +40,6 @@ export const AuthContextProvider: React.FC<Children> = ({ children }) => {
       unsub();
     };
   }, []);
-
 
   return (
     <AuthContext.Provider value={{ currentUser }}>
