@@ -1,43 +1,20 @@
 import { Button, Card, CardContent, MenuItem, Select, Stack, TextField } from '@mui/material';
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import FormHeader from 'screens/components/FormHeader';
-import { appuserdata, inventory } from 'types/interfaces';
+import { appuserdata } from 'types/interfaces';
 import {Timestamp} from "firebase/firestore";
-import {auth}  from '../../../../../firebase/index';
 import { AuthContext } from 'auth';
-import { collection, onSnapshot, doc, setDoc } from '@firebase/firestore';
+import { doc, setDoc } from '@firebase/firestore';
 import { db } from '../../../../../firebase/index';
-import { generateRandomKey } from '../../../../../firebase/function';
 import {getAuth, sendPasswordResetEmail, createUserWithEmailAndPassword } from '@firebase/auth'
 type Props = {
     modalData?: appuserdata |  null | undefined
 }
 
-const menu: string[] = [
-	'manilajd',
-	'nicolasabelrdo',
-	'plantationsports',
-	'amor trophies',
-	'isabela',
-	'kenns',
-]
-
-
-
 export default function Form({ modalData }: Props) {
 
-
-//     active: boolean,
-//   branch: string,
-//   email: string,
-//   lastLoggedIn: firestore.Timestamp,
-//   restrict: boolean,
-//   staff: string,
-//   storeid: string,
-//   uid: string,
     const {currentUser} = useContext(AuthContext)
-    const [opensuccess, setopensuccess] = React.useState<boolean>(false)
-    const [submitted, setsubmitted] = React.useState<boolean>(false)
+    const [submitted] = React.useState<boolean>(false)
     const [form, setform] = React.useState<appuserdata>({
         active: modalData?.active || true,
         branch: modalData?.branch || 'Abelens',
@@ -71,9 +48,6 @@ export default function Form({ modalData }: Props) {
 			alert('Successfully added to Staff!')
 			} else {
 					const { user } = await createUserWithEmailAndPassword(auth, form.email, 'Water@1234');
-					console.log('eto ba')
-					console.log(user)
-					console.log('error ba')
 					const formRef = doc(db, 'user', user.uid)
 					await setDoc(formRef, {
 						active: form.active,
@@ -91,15 +65,12 @@ export default function Form({ modalData }: Props) {
 			}
 	
 			} catch (err) {
-				console.log('nag error po')
 				console.log(err)
-				console.log('something went wrong ba')
 			}
     }
 		const sendResetLink = async() => {
 			const auth = getAuth()
 			await sendPasswordResetEmail(auth, form.email).then((res) =>{
-				console.log(res)
 				alert(`Successfully sent password reset link to ${form.email}`)
 			})
 
@@ -112,8 +83,8 @@ export default function Form({ modalData }: Props) {
 						<h1>
 							ADD/EDIT STAFF
 						</h1>
-						{form.uid != '' && <h4>USER ID: {form.uid}</h4>}
-						{form.uid != '' && <Button onClick={sendResetLink} sx={{alignItems: 'center', justifyContent: 'flex-start'}} >SEND RESET PASSWORD LINK</Button>}
+						{form.uid !== '' && <h4>USER ID: {form.uid}</h4>}
+						{form.uid !== '' && <Button onClick={sendResetLink} sx={{alignItems: 'center', justifyContent: 'flex-start'}} >SEND RESET PASSWORD LINK</Button>}
 							<Stack sx={{width: '100%'}}  direction="column" spacing={2} marginTop={2}>
 									<FormHeader inputLabel = 'Branch' />
 									<Select 
@@ -183,7 +154,7 @@ export default function Form({ modalData }: Props) {
                                             const targetvalue = e.target.value
                                             setform((prev: appuserdata) => ({
 											...prev,
-											active: targetvalue == 'Yes' ? true : false,
+											active: targetvalue === 'Yes' ? true : false,
 										}))}}
 										>
 													<MenuItem value = {"Yes"} key={0}>
@@ -203,7 +174,7 @@ export default function Form({ modalData }: Props) {
                                             const targetvalue = e.target.value
                                             setform((prev: appuserdata) => ({
 											...prev,
-											restrict: targetvalue == 'true' ? true: false,
+											restrict: targetvalue === 'true' ? true: false,
 										}))}}
 										>
 													<MenuItem value = {"Yes"} key={0}>

@@ -23,7 +23,7 @@ export default function Form({ transId, sales, close }: Props) {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const salesDetailsDocRef = doc(db, 'sales', 'salesdetails'); // Reference to the salesdetails document
+        const salesDetailsDocRef = doc(db, 'sales1', 'salesdetails'); // Reference to the salesdetails document
         const salesDetailsSnapshot = await getDoc(salesDetailsDocRef);
 
         if (salesDetailsSnapshot.exists()) {
@@ -77,8 +77,8 @@ export default function Form({ transId, sales, close }: Props) {
     setsuccess(false)
     try {
       // Reference to the sales document
-      const salesDocRef = doc(db, 'sales', 'sales');
-      const salesDetailsDocRef = doc(db, 'sales', 'salesdetails');
+      const salesDocRef = doc(db, 'sales1', 'sales');
+      const salesDetailsDocRef = doc(db, 'sales1', 'salesdetails');
 
       // Fetch the current sales data
       const salesSnapshot = await getDoc(salesDocRef);
@@ -97,7 +97,6 @@ export default function Form({ transId, sales, close }: Props) {
         // Update the sales details document
         await setDoc(salesDetailsDocRef, { details: updatedSalesDetails }, { merge: true });
 
-        console.log('Sales and sales details voided successfully');
         setsuccess(true)
         setTimeout(() => {
           setisdeleting(false)

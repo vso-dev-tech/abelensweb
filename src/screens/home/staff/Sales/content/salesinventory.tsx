@@ -1,12 +1,12 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import '../../admin.css'
 import '../../../../../index.css'
-import { collection, getDocs, query, where, getDoc, doc, Timestamp } from '@firebase/firestore';
+import { getDoc, doc, Timestamp } from '@firebase/firestore';
 import {db} from '../../../../../firebase/index'
-import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles } from '@mui/material'
-import { flightdata, inventory, sales } from 'types/interfaces';
+import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
+import { inventory } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faClose } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from 'auth';
 type Props = {
 
@@ -16,18 +16,6 @@ type Props = {
 
 }
 
-interface Row {
-    branch: string,
-    date: Date,
-    discount: number,
-    docId: string,
-    noitem: number,
-    staffId: string,
-    subtotal: number,
-    total: number,
-    transId: number,
-  }
- 
   export const menu: string[] = [
     'manilajd',
     'nicolasabelrdo',
@@ -41,9 +29,7 @@ export default function SalesInventory({data, excess, returnexcess}: Props) {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
-    const [modalData, setModalData] = React.useState<inventory | null | undefined>();
     const {currentUser} = useContext(AuthContext)
-		const [isAddModalOpen, setisAddModalOpen] = React.useState<boolean>(false)
     const [searchQuery, setSearchQuery] = React.useState('');
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(12); // You can adjust the number of rows per page here
@@ -70,6 +56,7 @@ export default function SalesInventory({data, excess, returnexcess}: Props) {
 
     React.useEffect(() => {
       fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [supplier]);
   
   
@@ -79,11 +66,10 @@ export default function SalesInventory({data, excess, returnexcess}: Props) {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data() as any;
-            const filterActive = data.data.filter((item: inventory )=> {return item.active == true} )
+            const filterActive = data.data.filter((item: inventory )=> {return item.active === true} )
 
             setrow(filterActive)
         } else {
-            console.log('Document does not exist!');
             alert('No data exists with selected supplier')
         }
       } catch (error) {
@@ -127,7 +113,6 @@ export default function SalesInventory({data, excess, returnexcess}: Props) {
     });
 
     const selectItem = (id: inventory, stocks: number) => {
-      console.log(id)
       if(stocks <= 5) {
         alert('Please inform the main office for all low stock items')
       }
@@ -157,7 +142,6 @@ export default function SalesInventory({data, excess, returnexcess}: Props) {
       pressTimer.current = setTimeout(() => {
         setaddeditem(item)
         setIsModalOpen(true);
-        console.log('Long press detected');
       }, 1000); // Adjust the duration of the long press as needed
     };
 

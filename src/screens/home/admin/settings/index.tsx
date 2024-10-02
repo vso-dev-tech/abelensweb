@@ -1,11 +1,10 @@
-import { Button, Card, CardContent, CircularProgress, Input, MenuItem, Modal, Select, Stack, Switch, TextField, Typography } from '@mui/material'
-import { Timestamp, addDoc, collection, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { Button, Card, CardContent, CircularProgress, MenuItem, Modal, Select, Stack, Switch, TextField } from '@mui/material'
+import { Timestamp, collection, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { generateRandomKey } from '../../../../firebase/function';
 import React, { useState } from 'react'
-import { appuserdata, flightdata, inventory } from 'types/interfaces';
+import { appuserdata, inventory } from 'types/interfaces';
 import Papa from 'papaparse';
 import { db } from '../../../../firebase/index';
-import { menu } from '../Inventory';
 import SettingTable from './content/userTable';
 import Form from './content/form';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -16,7 +15,7 @@ interface appcontrol {
 	disableLogin: string,
 }
 
-export default function Settings({}) {
+export default function Settings() {
 
   const [file, setFile] = useState<any | null>(null);
 	const [switched, setswitch] = useState<string>('false');
@@ -226,7 +225,7 @@ export default function Settings({}) {
 								}}
 							/>
 							<br/>
-							<Button onClick={disableLogin} variant='contained' sx = {{width: '30%', backgroundColor: '#30BE7A', fontWeight: 'bolder'}} disabled = {initialSwitchvalue?.disableLogin == switched} >CONFIRM ACTION</Button>
+							<Button onClick={disableLogin} variant='contained' sx = {{width: '30%', backgroundColor: '#30BE7A', fontWeight: 'bolder'}} disabled = {initialSwitchvalue?.disableLogin === switched} >CONFIRM ACTION</Button>
 						</Stack>
 						<Stack>
 							<h4 style = {{marginBlockEnd: 0}}>APP USER SETTINGS</h4>

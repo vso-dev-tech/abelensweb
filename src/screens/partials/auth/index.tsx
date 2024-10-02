@@ -1,4 +1,4 @@
-import { collection, getDocs } from '@firebase/firestore';
+import { collection, getDocs, query, where } from '@firebase/firestore';
 import { auth, db } from '../../../firebase';
 import React, { useContext, useEffect, useState } from 'react'
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -40,26 +40,27 @@ export default function Login() {
     seterror(false)
     setloading(true)
     setsubmitted(true)
-    if(username.length === 0 || loginpassword.length === 0) {
-      return
+    if (username.length === 0 || loginpassword.length === 0) {
+      return;
     }
-    settoast('checking email...')
-    const querySnapshot = await getDocs(collection(db, "user"));
+    
+    settoast('checking email...');
+    
+    // Create a query to filter by username
+    const userQuery = query(collection(db, "user"), where("username", "==", username));
+    const querySnapshot = await getDocs(userQuery); // Use the query here
     const userData: logindata[] = [];
-  
+    
     querySnapshot.forEach((doc) => {
-      if (doc.data().username === username) {
-        userData.push({
-            uid: doc.data().uid,
-            username: doc.data().username,
-            type: doc.data().type,
-            email: doc.data().email,
-            branch: doc.data().branch,
-            
-        });
-      }
+      userData.push({
+        uid: doc.data().uid,
+        username: doc.data().username,
+        type: doc.data().type,
+        email: doc.data().email,
+        branch: doc.data().branch,
+      });
     });
-    console.log(userData)
+    
     if (userData.length > 0) {
       settoast('verifying credentials...')
         const email = userData[0].email;
@@ -68,7 +69,6 @@ export default function Login() {
         await signInWithEmailAndPassword(auth, email, password).then((res) => {
           setloading(false)
           setsubmitted(false)
-          console.log(res)
           if(userData[0].type === 'staff'){
             navigate('/staff/sales')
           }

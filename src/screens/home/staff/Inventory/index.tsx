@@ -42,7 +42,6 @@ export default function StaffInventory() {
               const filterActive = data.data.filter((item: inventory) => item.active === true);
               setrow(filterActive);
           } else {
-              console.log('Document does not exist!');
               alert('No data exists with selected supplier');
           }
       } catch (error) {

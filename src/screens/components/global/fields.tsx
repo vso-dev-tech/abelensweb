@@ -1,6 +1,7 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import React, { FormEventHandler } from 'react'
+import React from 'react'
 import '../styles/components.css'
 type Props = {
 	icon?: IconDefinition,
@@ -136,6 +137,7 @@ return (
 			placeholder={placeholder}
 			color='#d9d9d9'
 			/>
+		
 		{timer ? <p>{time}</p> :  <a onClick={onClick}>send</a> }
 </div>
 </>

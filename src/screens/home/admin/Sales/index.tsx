@@ -39,7 +39,7 @@ export default function Sales() {
   const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
   const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
   React.useEffect(() => {
-    const salesDocRef = doc(db, 'sales', 'sales'); // Reference to the sales document
+    const salesDocRef = doc(db, 'sales1', 'sales'); // Reference to the sales document
     const unsubscribe = onSnapshot(salesDocRef, (doc) => {
         if (doc.exists()) {
             const salesData = doc.data().sales || []; // Get the sales array
@@ -63,7 +63,6 @@ export default function Sales() {
                     newData.push(data);
                 }
             });
-            console.log(newData)
             setrow(newData);
             setbranchinventory(branchinventorysales);
             setweeklytotalsales(weeklydata);
@@ -115,7 +114,6 @@ export default function Sales() {
       setIsModalOpen(true)
       settransid(item.transId)
       setsales(item)
-      console.log(transid)
   }
 
 const aggregatedSales: { [key: string]: number } = {};

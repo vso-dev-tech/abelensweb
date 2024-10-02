@@ -1,4 +1,4 @@
-import { AuthError, confirmPasswordReset, sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../../../firebase/index';
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
@@ -17,13 +17,13 @@ export const ForgotPassword = (props: Props) => {
 				navigate('/login')
 			})
 		} catch(err: any){
-			if(err == 'FirebaseError: Firebase: Error (auth/invalid-email).') {
+			if(err === 'FirebaseError: Firebase: Error (auth/invalid-email).') {
 				alert('That is not an email address')
 			}
-			if(err == 'FirebaseError: Firebase: Error (auth/user-not-found).') {
+			if(err === 'FirebaseError: Firebase: Error (auth/user-not-found).') {
 				alert('Email not found')
 			}
-			if(err == 'FirebaseError: Firebase: Error (auth/too-many-requests).') {
+			if(err === 'FirebaseError: Firebase: Error (auth/too-many-requests).') {
 				alert('You sent to many request, try again in a few.')
 			}
 		}

@@ -44,7 +44,7 @@ export default function StaffSales() {
     const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
 
     React.useEffect(() => {
-      const salesDocRef = doc(db, 'sales', 'sales'); // Reference to the sales document
+      const salesDocRef = doc(db, 'sales1', 'sales'); // Reference to the sales document
       const unsubscribe = onSnapshot(salesDocRef, (doc) => {
           if (doc.exists()) {
               const salesData = doc.data().sales || []; // Get the sales array
@@ -66,7 +66,6 @@ export default function StaffSales() {
                       newData.push(data);
                   }
               });
-              console.log(newData)
               setrow(newData);
               setweeklytotalsales(branchinventorysales);
           } else {
@@ -117,7 +116,6 @@ export default function StaffSales() {
         setIsModalOpen(true)
         settransid(item.transId)
         setsales(item)
-        console.log(transid)
     }
 
   const aggregatedSales: { [key: string]: number } = {};

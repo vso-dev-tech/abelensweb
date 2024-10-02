@@ -20,7 +20,6 @@ export const Header: React.FC<Props> = ({menu}) => {
 		try {
 				await signOut(auth);
         navigate('/logout')
-				console.log("User signed out successfully.");
 			} catch (error) {
 				// Handle any errors here
 				console.error("Error signing out:", error);

@@ -1,11 +1,11 @@
+/* eslint-disable jsx-a11y/alt-text */
 import { collection, getDocs } from '@firebase/firestore'
 import { db } from '../../firebase/index'
 import React from 'react'
 import Card from 'screens/components/global/card'
-import { admindata, logindata, postdata } from 'types/interfaces'
+import { admindata, postdata } from 'types/interfaces'
 import TimeAgo from 'react-timeago';
 import './styles/contents.css'
-import Modal from 'screens/components/global/modal'
 type Props = {
 
 	data: postdata
@@ -16,13 +16,9 @@ type Props = {
 export default function Data({data}: Props) {
 
 	const [userdata, setuserdata] = React.useState<admindata[]>([])
-	const [modalOpen, setModalOpen] = React.useState(false);
-
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
-
 	React.useEffect(() => {
 		getUserData()
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	},[])
 
 	const getUserData = async () => {
@@ -61,7 +57,7 @@ export default function Data({data}: Props) {
 					</div>
 					<div className='data-body'>
 						<p>{data.text}</p>
-						{data.photo && <img draggable = {false} onClick={openModal} style={{ cursor: 'pointer' }} src={data.photo} width={'95%'} height={200}/>}
+						{data.photo && <img draggable = {false} style={{ cursor: 'pointer' }} src={data.photo} width={'95%'} height={200}/>}
 					</div>
 				</div>
     	</Card>

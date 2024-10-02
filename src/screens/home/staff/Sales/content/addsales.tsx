@@ -31,10 +31,7 @@ export default function AddSales() {
   }
 
   const removeAllItem = (itemnoToRemove: number) => {
-    console.log(itemnoToRemove)
-    console.log(selecteditem)
     const updatedSelectedItems = selecteditem.filter((item) => { return item.itemno !== itemnoToRemove });
-    console.log(updatedSelectedItems)
     setselecteditem(updatedSelectedItems);
   };
 
@@ -74,7 +71,7 @@ export default function AddSales() {
     if (withDiscount > 0) {
       try {
         let highesttransId = 0;
-        const salesRef = doc(db, 'sales', 'sales'); // Reference to the sales document
+        const salesRef = doc(db, 'sales1', 'sales'); // Reference to the sales document
         const salesRefSnap = await getDoc(salesRef);
         
         if (salesRefSnap.exists()) {
@@ -128,7 +125,7 @@ export default function AddSales() {
                   await setDoc(branchDocRef, { data: updatedData }, { merge: true });
                 }
               } else {
-                console.log('Document does not exist:', branchDocRef.path);
+
               }
             }
           }
@@ -148,7 +145,7 @@ export default function AddSales() {
           staffId: currentUser?.uid
         };
         // Retrieve existing sales records
-        const salesDocRef = doc(db, 'sales', 'sales');
+        const salesDocRef = doc(db, 'sales1', 'sales');
         const salesSnapshot = await getDoc(salesDocRef);
         let existingSales = [];
 
@@ -165,7 +162,7 @@ export default function AddSales() {
         }, { merge: true }); // Merging will keep existing sales and add new ones
 
         // Save the sales details as before
-        const salesDetailsDocRef = doc(db, 'sales', 'salesdetails');
+        const salesDetailsDocRef = doc(db, 'sales1', 'salesdetails');
         const salesDetailsSnapshot = await getDoc(salesDetailsDocRef);
         let existingDetails = [];
 

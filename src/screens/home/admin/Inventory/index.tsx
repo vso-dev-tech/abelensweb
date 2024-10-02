@@ -60,7 +60,6 @@ export default function Inventory() {
                 setLength(data.data.length);
                 setRows(filterActive);
             } else {
-                console.log('Document does not exist!');
                 alert('No data exists with selected supplier');
             }
         } catch (error) {

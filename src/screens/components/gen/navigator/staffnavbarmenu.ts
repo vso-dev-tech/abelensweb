@@ -1,4 +1,4 @@
-import { faArchive, faCartShopping, faChartColumn, faCogs, faEnvelope, faList, faListCheck, faListUl, faLocationDot, faShoppingCart, faSpaghettiMonsterFlying, faTriangleExclamation, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faArchive, faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
 const StaffNavbarmenu = [
     {

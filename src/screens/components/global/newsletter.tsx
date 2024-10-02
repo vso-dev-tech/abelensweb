@@ -1,5 +1,3 @@
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react'
 import Card from './card'
 import {getDocs, doc, setDoc, collection} from '@firebase/firestore'
@@ -63,7 +61,7 @@ export default function NewsLetter ({ isOpen, onClose }: Props)  {
 			if((!email && !contact) || 
 					(email && !email.includes('@')) || 
 					(contact && !/^\d+$/.test(contact)) ||
-					(contact &&  contact.length != 11)){ 
+					(contact &&  contact.length !== 11)){ 
 					alert('whoops, please check the fields')
 			} else {
 				try {

@@ -1,10 +1,10 @@
 import { Button, Card, CardContent, MenuItem, Select, Stack, TextField } from '@mui/material';
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import FormHeader from 'screens/components/FormHeader';
 import { inventory } from 'types/interfaces';
 import {Timestamp} from "firebase/firestore";
 import { AuthContext } from 'auth';
-import { collection, onSnapshot, doc, setDoc, addDoc, getDoc, updateDoc } from '@firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc } from '@firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import { generateRandomKey } from '../../../../../firebase/function';
 type Props = {
@@ -26,9 +26,8 @@ const menu: string[] = [
 export default function Form({onClick, modalData, onSubmit}: Props) {
 
     const {currentUser} = useContext(AuthContext)
-    const [opensuccess, setopensuccess] = React.useState<boolean>(false)
-    const [submitted, setsubmitted] = React.useState<boolean>(false)
-	const [csv, setcsv] = React.useState<inventory[]>([])
+    const [opensuccess] = React.useState<boolean>(false)
+    const [submitted] = React.useState<boolean>(false)
     const [form, setform] = React.useState<inventory>({
         active: modalData?.active || true,
         date:modalData?.date || Timestamp.fromDate(new Date()),
@@ -152,16 +151,14 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 					}
 				}
 			});
-			console.log()
 			const newItemNo = Math.floor(maxItemNo + 1);
-			console.log(newItemNo)
 			if(form.itemno === 0){
 			setform((prev) => ({...prev, itemno: newItemNo}));
 			}
 		});
 	
 		return () => unsubscribe();
-	}, []);
+	}, [currentUser?.branch, form.itemno]);
 
 
 

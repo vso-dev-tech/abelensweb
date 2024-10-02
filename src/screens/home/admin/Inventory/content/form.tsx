@@ -119,8 +119,6 @@ export default function Form({onClick, modalData, onSubmit, length, selectedBran
 						supplier: form.supplier
 					};
 	
-					console.log('bruh', existingData[index])
-					// Update the 'data' field in the document
 					await updateDoc(branchRef, { data: existingData });
 					setform({
 						active: true,
@@ -158,7 +156,6 @@ export default function Form({onClick, modalData, onSubmit, length, selectedBran
 				const existingData: inventory[]  = data.data || [];
 	
 				const index = existingData.findIndex(item => item.docId === form.docId);
-				console.log('yo', existingData[index])
 				if (index !== -1) {
 					// Update the item in the existing data array
 					existingData[index] = {
@@ -173,7 +170,6 @@ export default function Form({onClick, modalData, onSubmit, length, selectedBran
 						supplier: form.supplier
 					};
 					
-					console.log('yo', existingData)
 					// Update the 'data' field in the document
 					await updateDoc(branchRef, { data: existingData });
 					setform({
@@ -345,7 +341,6 @@ export default function Form({onClick, modalData, onSubmit, length, selectedBran
 
 							<Button sx={{backgroundColor: '#30BE7A', fontWeight: 'bold'}} onClick={() => {
 								if (form.docId !== '') {
-									console.log('pressed?')
 									submitedit();
 									
 								} else {
