@@ -47,6 +47,7 @@ export default function Form({ modalData }: Props) {
         username:modalData?.username || '',
         storeid:modalData?.storeid || '',
         uid:modalData?.uid || '',
+		type: modalData?.type || 'staff',
     })
     const submit = async() => {
 			try {
@@ -65,6 +66,7 @@ export default function Form({ modalData }: Props) {
 					username: form.username,
 					storeid:form.storeid,
 					uid: form.uid,
+					type: form.type
 			})
 			alert('Successfully added to Staff!')
 			} else {

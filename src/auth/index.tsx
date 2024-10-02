@@ -2,16 +2,10 @@ import { createContext, useEffect, useState } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "@firebase/auth";
 import React from "react";
-import { collection, getDoc, getDocs } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { logindata } from "types/interfaces";
 
 // Define the type for your user
-type User = {
-  uid: string;
-  displayName: string | null;
-  email: string | null;
-  photoURL: string | null | undefined;
-};
 
 type AuthContextType = {
   currentUser: logindata | null | undefined;
@@ -36,6 +30,7 @@ export const AuthContextProvider: React.FC<Children> = ({ children }) => {
         const thisdata: logindata[] = []
         data.forEach((doc) => {
           const data = doc.data() as logindata
+          console.log(data, user.uid)
           if (data.uid === user.uid) {
             thisdata.push(data)
           }

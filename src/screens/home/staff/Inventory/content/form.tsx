@@ -39,7 +39,8 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
         unitprice: modalData?.unitprice ||1,
         unitsales: modalData?.unitsales ||0,
 		branch: modalData?.branch ||'Abelens',
-		supplier: modalData?.supplier || 'manilajd'
+		supplier: modalData?.supplier || 'manilajd',
+		sellingprice: modalData?.sellingprice || 0
     })
 
     const submit = async () => {
@@ -78,7 +79,8 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 					unitprice: 1,
 					unitsales: 0,
 					branch: 'Abelens',
-					supplier: 'manilajd'
+					supplier: 'manilajd',
+					sellingprice: 0,
 				});
 				onSubmit()
 			} else {
@@ -110,7 +112,20 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 					};
 	
 					// Update the 'data' field in the document
-					await updateDoc(branchRef, { data: existingData });
+					await updateDoc(branchRef, { data: existingData })
+					setform({
+						active: true,
+						date: Timestamp.fromDate(new Date()),
+						docId: '',
+						itemname: '',
+						itemno: 0,
+						stocks: 1,
+						unitprice: 1,
+						unitsales: 0,
+						branch: 'Abelens',
+						supplier: 'manilajd',
+						sellingprice: 0,
+					});
 					onSubmit()
 					alert('Successfully updated inventory item!');
 				} else {
@@ -126,18 +141,20 @@ export default function Form({onClick, modalData, onSubmit}: Props) {
 	
 
 	React.useEffect(() => {
-		const unsubscribe = onSnapshot(collection(db, 'inventory'), (snapshot) => {
+		const unsubscribe = onSnapshot(collection(db, currentUser?.branch || ''), (snapshot) => {
 			let maxItemNo = 0;
 			snapshot.forEach((doc) => {
 				const data = doc.data();
 				if (data && Array.isArray(data.data)) {
-					const docMaxItemNo = data.data.reduce((max, item) => (item.itemno > max ? item.itemno : max), 0);
+					const docMaxItemNo = data.data.length
 					if (docMaxItemNo > maxItemNo) {
 						maxItemNo = docMaxItemNo;
 					}
 				}
 			});
+			console.log()
 			const newItemNo = Math.floor(maxItemNo + 1);
+			console.log(newItemNo)
 			if(form.itemno === 0){
 			setform((prev) => ({...prev, itemno: newItemNo}));
 			}

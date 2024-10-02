@@ -1,20 +1,16 @@
 import React from 'react'
 import '../admin.css'
 import '../../../../index.css'
-import { collection, onSnapshot } from '@firebase/firestore';
+import { doc, onSnapshot } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
-import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, makeStyles, useMediaQuery, useTheme } from '@mui/material'
-import { flightdata, sales } from 'types/interfaces';
+import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
+import { sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
-import firestore from '@firebase/firestore'
 import { BarChart } from '@mui/x-charts';
 import Form from './content/form';
-import { menu } from '../Inventory';
 import AddSales from './content/addsales';
 import { AuthContext } from 'auth';
-type Props = {}
-
 interface Row {
     branch: string,
     date: Date,
@@ -26,15 +22,9 @@ interface Row {
     total: number,
     transId: number,
   }
-
-  const salestype = [
-    'All',
-    'Abelens',
-    'Nepo'
-  ]
  
 
-export default function StaffSales({}: Props) {
+export default function StaffSales() {
 
     
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
@@ -43,45 +33,53 @@ export default function StaffSales({}: Props) {
     const [searchQuery, setSearchQuery] = React.useState('');
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5); // You can adjust the number of rows per page here
-    const [orderBy, setOrderBy] = React.useState<keyof Row>('transId');
-    const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
+    const [ordersBy, setordersBy] = React.useState<keyof Row>('transId');
+    const [order, setOrder] = React.useState<'asc' | 'desc'>('desc');
     const [rows, setrow] = React.useState<sales[]>([])
     const [sales, setsales] = React.useState<sales>()
     
     const {currentUser} =  React.useContext(AuthContext)
-    const [branch, setbranch] = React.useState<string>(currentUser?.branch || 'Abelens')
-    const [branchsales, setbranchsales] = React.useState<string>('All')
-    const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
+    const [branch] = React.useState<string>(currentUser?.branch || 'Abelens')
+    const [branchinventory] = React.useState<sales[]>([])
     const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
-    
+
     React.useEffect(() => {
-        const unsubscribe = onSnapshot(collection(db, 'sales'), (snapshot) => {
-          const newData: sales[] = [];
-          const weeklydata: sales[] = [];
-          const branchinventorysales: sales[] = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data() as sales
-            weeklydata.push(data)
-            if(data.branch == branch){
-              branchinventorysales.push(data)
-            }
-            if(branchsales != 'All'){
-            if(data.branch === branchsales)
-            newData.push(data)
-            } else {
-              newData.push(data)
-            }
-          });
-          setrow(newData);
-          setbranchinventory(branchinventorysales)
-          setweeklytotalsales(weeklydata)
-        });
-    
-        return () => unsubscribe();
-      }, [branchsales, branch]);
+      const salesDocRef = doc(db, 'sales', 'sales'); // Reference to the sales document
+      const unsubscribe = onSnapshot(salesDocRef, (doc) => {
+          if (doc.exists()) {
+              const salesData = doc.data().sales || []; // Get the sales array
+              
+              const newData: sales[] = [];
+              const branchinventorysales: sales[] = [];
+  
+              salesData.forEach((data: sales) => {
+                  
+                  if (data.branch === branch) {
+                      branchinventorysales.push(data);
+                  }
+  
+                  if (branch !== 'All') {
+                      if (data.branch === branch) {
+                          newData.push(data);
+                      }
+                  } else {
+                      newData.push(data);
+                  }
+              });
+              console.log(newData)
+              setrow(newData);
+              setweeklytotalsales(branchinventorysales);
+          } else {
+              console.error('Sales document does not exist');
+          }
+      });
+  
+      return () => unsubscribe(); // Clean up the listener on unmount
+  }, [branch]);
+
     const handleRequestSort = (property: keyof Row) => {
-      const isAsc = orderBy === property && order === 'asc';
-      setOrderBy(property);
+      const isAsc = ordersBy === property && order === 'asc';
+      setordersBy(property);
       setOrder(isAsc ? 'desc' : 'asc');
     };
   
@@ -110,8 +108,8 @@ export default function StaffSales({}: Props) {
   
     const sortedRows = filteredRows.sort((a, b) => {
       const isAsc = order === 'asc';
-      if (a[orderBy] < b[orderBy]) return isAsc ? -1 : 1;
-      if (a[orderBy] > b[orderBy]) return isAsc ? 1 : -1;
+      if (a[ordersBy] < b[ordersBy]) return isAsc ? -1 : 1;
+      if (a[ordersBy] > b[ordersBy]) return isAsc ? 1 : -1;
       return 0;
     });
 
@@ -189,16 +187,13 @@ export default function StaffSales({}: Props) {
         };
     }, []);
 
-    let chartWidth = 750; // Default width for screen size above 1700px
-    let chartHeight = 300;
+    let chartWidth = 750;
     let chartHeight1 = 350;
     if (screenWidth <= 1700 && screenWidth > 1463) {
-        chartWidth = 550; // Set width to 550 for screen size 1700px and below
-        chartHeight = 200;
+        chartWidth = 550;
         chartHeight1 = 300
     } else if (screenWidth <= 1463) {
         chartWidth = 400;
-        chartHeight = 200;
         chartHeight1 = 350;
     }
 
@@ -230,50 +225,14 @@ export default function StaffSales({}: Props) {
           />
           </CardContent>
         </Card>
-        <Card>
-          <CardContent>
-          <h1 style = {{paddingLeft: 10}}>WEEKLY BRANCH SALES</h1>
-          <p style = {{paddingLeft: 40}}>SELECTED BRANCH: </p>
-          <Select 
-            defaultValue={'Nepo Branch'}
-            value = {branch}
-            onChange={(e) => setbranch(e.target.value)}
-            sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700, marginLeft: 5}}
-            >
-              <MenuItem value = {'Nepo'} key={1}>Nepo Branch</MenuItem>
-              <MenuItem value = {'Abelens'}  key={2}>Abelens Branch</MenuItem>
-          </Select>
-          <BarChart
-            xAxis={[{ scaleType: 'band', 
-            data: branchdates
-            }]}
-            
-            width={chartWidth}
-            height={chartHeight}
-            slotProps={{
-              legend: {
-                direction: 'row',
-                position: { vertical: 'bottom', horizontal: 'middle' },
-              },
-            }}
-            series={[
-              { data: branchtotalSales, color: '#30BE7A'},
-            ]}
-          />
-          </CardContent>
-        </Card>
         </div>
         <h1>REAL-TIME SALE</h1>
         <Select 
             defaultValue={'All'}
-            value = {branchsales}
-            onChange={(e) => setbranchsales(e.target.value)}
+            value = {currentUser?.branch}
             sx={{width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700, marginRight: 1}}
             >
-            <MenuItem value = {'All'} key = {0} >All</MenuItem>
-            
-            <MenuItem value = {'Abelens'}  key={2}>Abelens Branch</MenuItem>
-            <MenuItem value = {'Nepo'} key={1}>Nepo Branch</MenuItem>
+            <MenuItem value = {currentUser?.branch}  key={2}>{currentUser?.branch}</MenuItem>
         </Select>
         <TextField
           label="Search"
@@ -292,10 +251,10 @@ export default function StaffSales({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                      style={{
-                      color: orderBy === 'date' ? '#000' : '#fff'
+                      color: ordersBy === 'date' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'date'}
-                    direction={orderBy === 'date' ? order : 'asc'}
+                    active={ordersBy === 'date'}
+                    direction={ordersBy === 'date' ? order : 'asc'}
                     onClick={() => handleRequestSort('date')}
                   >
                     Date
@@ -305,10 +264,10 @@ export default function StaffSales({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                      style={{
-                      color: orderBy === 'transId' ? '#000' : '#fff'
+                      color: ordersBy === 'transId' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'transId'}
-                    direction={orderBy === 'transId' ? order : 'asc'}
+                    active={ordersBy === 'transId'}
+                    direction={ordersBy === 'transId' ? order : 'asc'}
                     onClick={() => handleRequestSort('transId')}
                     
                   >
@@ -319,10 +278,10 @@ export default function StaffSales({}: Props) {
                   <TableSortLabel
                     className='headerCell'
                     style={{
-                      color: orderBy === 'noitem' ? '#000' : '#fff'
+                      color: ordersBy === 'noitem' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'noitem'}
-                    direction={orderBy === 'noitem' ? order : 'asc'}
+                    active={ordersBy === 'noitem'}
+                    direction={ordersBy === 'noitem' ? order : 'asc'}
                     onClick={() => handleRequestSort('noitem')}
                   >
                     No. of Items
@@ -332,10 +291,10 @@ export default function StaffSales({}: Props) {
                   <TableSortLabel
                    className='headerCell'
                     style={{
-                      color: orderBy === 'branch' ? '#000' : '#fff'
+                      color: ordersBy === 'branch' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'branch'}
-                    direction={orderBy === 'branch' ? order : 'asc'}
+                    active={ordersBy === 'branch'}
+                    direction={ordersBy === 'branch' ? order : 'asc'}
                     onClick={() => handleRequestSort('branch')}
                   >
                     Branch
@@ -345,10 +304,10 @@ export default function StaffSales({}: Props) {
                   <TableSortLabel
                    className='headerCell'
                     style={{
-                    color: orderBy === 'total' ? '#000' : '#fff'
+                    color: ordersBy === 'total' ? '#000' : '#fff'
                     }}
-                    active={orderBy === 'total'}
-                    direction={orderBy === 'total' ? order : 'asc'}
+                    active={ordersBy === 'total'}
+                    direction={ordersBy === 'total' ? order : 'asc'}
                     onClick={() => handleRequestSort('total')}
                   >
                     Total
