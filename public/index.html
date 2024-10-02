@@ -3,11 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+    <title>Abelens Inventory Management System</title>
 
-    <!-- update the version number as needed -->
+    <!-- Firebase SDK -->
     <script defer src="/__/firebase/10.14.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
     <script defer src="/__/firebase/10.14.0/firebase-auth-compat.js"></script>
     <script defer src="/__/firebase/10.14.0/firebase-database-compat.js"></script>
     <script defer src="/__/firebase/10.14.0/firebase-firestore-compat.js"></script>
@@ -39,13 +38,38 @@
     </style>
   </head>
   <body>
+    <noscript>Powered by vsodev.tech consultancy</noscript>
     <div id="message">
       <h2>Welcome</h2>
       <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
+      <p>You're seeing this because you've successfully set up Firebase Hosting. Now it's time to go build something extraordinary! 🎉</p>
       <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
     </div>
     <p id="load">Firebase SDK Loading&hellip;</p>
+    <div id="root"></div>
+
+    <style>
+      .console {
+          background-color: #f5f5f5;
+          border: 1px solid #ccc;
+          padding: 10px;
+          margin-bottom: 10px;
+          font-family: Arial, sans-serif;
+          color: #333;
+      }
+  
+      .error {
+          color: red;
+      }
+  
+      .warning {
+          color: orange;
+      }
+  
+      .success {
+          color: green;
+      }
+    </style>
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -83,6 +107,9 @@
           console.error(e);
           loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
         }
+
+        console.log('%cSTOP RIGHT THERE!!!', 'color: red; font-weight: bold; font-size: 60px; text-shadow: -2px -2px 0 white, 2px -2px 0 white, -2px 2px 0 white, 2px 2px 0 black;');
+        console.log('%cthis browser tool is intended for vsodev.tech developers. If anyone asks you to copy and paste any information from this, you might get hacked. 🔒', 'color: yellow; font-weight: bold; font-size: 40px;text-shadow: -2px -2px 0 red, 2px -2px 0 red, -2px 2px 0 red, 2px 2px 0 red;');  
       });
     </script>
   </body>
