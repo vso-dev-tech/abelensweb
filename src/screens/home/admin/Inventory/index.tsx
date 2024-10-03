@@ -202,14 +202,45 @@ export default function Inventory() {
                     </Button>
                 </div>
             </div>
-            <Modal open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
-                    <div className='modalContainer'>
-                            <Button onClick={() => setIsAddModalOpen(false)} sx={{ cursor: 'pointer', padding: 2, color: '#fff', position: 'absolute', right: 0 }}>
-                                <FontAwesomeIcon icon={faClose} size='xl' />
-                            </Button>
-                        <Form onSubmit={() => {fetchData(); setIsAddModalOpen(false)}} onClick={() =>{ setIsAddModalOpen(false); fetchData(); setModalData(null)}} modalData = {modalData} selectedBranch = {branch} length = {length} />
-                    </div>
-                </Modal>
+            <Modal 
+    open={isAddModalOpen} 
+    onClose={() => setIsAddModalOpen(false)} 
+    disableScrollLock={true} // Prevent background scroll lock if necessary
+>
+    <div 
+        className="modalContainer"
+        style={{
+            maxHeight: '100vh',
+            overflowY: 'auto',
+        }}
+    >
+        <Button 
+            onClick={() => setIsAddModalOpen(false)} 
+            sx={{ cursor: 'pointer', padding: 2, color: '#fff', position: 'absolute', right: 0, top: 20 }}
+        >
+            <FontAwesomeIcon icon={faClose} size="xl" />
+        </Button>
+
+        {/* The form stays as is */}
+        <Form 
+            onSubmit={() => {
+                fetchData();
+                setIsAddModalOpen(false);
+            }} 
+            onClick={() => {
+                setIsAddModalOpen(false); 
+                fetchData(); 
+                setModalData(null);
+            }} 
+            modalData={modalData} 
+            selectedBranch={branch} 
+            length={length} 
+        />
+        <br/>
+        <br/>
+    </div>
+</Modal>
+
         </div>
     );
 }
