@@ -1,4 +1,4 @@
-import { faArchive, faCogs, faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import { faArchive, faCartArrowDown, faCogs, faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
 const Navbarmenu = [
     {
@@ -9,12 +9,18 @@ const Navbarmenu = [
     },
     {
         id: 2,
+        title: 'Sales Stash',
+        path: '/admin/sales stash',
+        icon: faCartArrowDown,
+    },
+    {
+        id: 3,
         title: 'Inventory',
         path: '/admin/inventory',
         icon: faArchive
     },
     {
-        id: 3,
+        id: 4,
         title: 'Settings',
         path: '/admin/settings',
         icon: faCogs

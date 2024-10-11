@@ -23,7 +23,7 @@ const App: React.FC = () => {
   const { currentUser } = useContext(AuthContext);
   const isAdmin = currentUser && currentUser.type === 'admin';
   const isStaff = currentUser && currentUser.type === 'staff';
-  
+
   const ProtectedAdminRoute: React.FC<children> = ({ children }) => {
     if (!isAdmin) {
       return <Navigate to="/" />;

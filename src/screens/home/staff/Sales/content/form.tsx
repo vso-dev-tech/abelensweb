@@ -1,7 +1,7 @@
 import {Card, CardContent, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
 import React, {  } from 'react'
 import { appuserdata, sales, salesdetails } from 'types/interfaces';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDoc, doc, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import './focus.css'
 type Props = {
@@ -17,48 +17,54 @@ export default function Form({transId, sales}: Props) {
     const [rows, setrow] = React.useState<salesdetails[]>([])
     const [userdetails, setuserdetails] = React.useState<appuserdata>()
     React.useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, 'salesdetails'));
-                const newData: salesdetails[] = [];
-                const itemNumbers: Set<string> = new Set(); // Set to store unique item numbers
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data() as salesdetails;
-                    if (data.transId === transId && !itemNumbers.has(data.itemno)) {
-                        newData.push(data);
-                        itemNumbers.add(data.itemno);
-                    }
-                });
-                setrow(newData);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-    
-        fetchData();
-    
-    }, [transId]);
+      const fetchData = async () => {
+          try {
+              const salesDocRef = doc(db, 'sales1', 'salesdetails'); // Accessing the sales document
+              const docSnapshot = await getDoc(salesDocRef);
+              console.log(docSnapshot.exists())
+              if (docSnapshot.exists()) {
+                  const data = docSnapshot.data().details as salesdetails[];
+                  console.log(data)
+                      setrow(data);
+                    
+              } else {
+                  console.log('No such document!');
+              }
+          } catch (error) {
+              console.error('Error fetching data:', error);
+          }
+      };
+  
+      fetchData();
+  }, [transId]);
+  
 
-    React.useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, 'user'));
-                const newData: appuserdata[] = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data() as appuserdata;
-                    if (data.uid === sales?.staffId) {
-                        newData.push(data);
-                    }
-                });
+  React.useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const q = query(collection(db, 'user'), where('uid', '==', sales?.staffId));
+            const querySnapshot = await getDocs(q);
+            const newData: appuserdata[] = [];
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data() as appuserdata;
+                newData.push(data);
+            });
+
+            if (newData.length > 0) {
                 setuserdetails(newData[0]);
-            } catch (error) {
-                console.error('Error fetching data:', error);
+            } else {
+                console.log('No user found for this staffId.');
             }
-        };
-    
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
+    if (sales?.staffId) {
         fetchData();
-    
-    }, [sales]);
+    }
+}, [sales]);
 
   return (
     <div style = {{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 75, flexDirection: 'column',}}>
