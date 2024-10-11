@@ -1,7 +1,7 @@
 import { Button, Card, CardContent, CircularProgress, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
 import React from 'react'
 import { appuserdata, sales, salesdetails } from 'types/interfaces';
-import { doc, getDoc, getDocs, collection, setDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, setDoc, query, where } from 'firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import './focus.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -54,23 +54,30 @@ export default function Form({ transId, sales, close }: Props) {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'user'));
-        const newData: appuserdata[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data() as appuserdata;
-          if (data.uid === sales?.staffId) {
-            newData.push(data);
-          }
-        });
-        setuserdetails(newData[0]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+        try {
+            const q = query(collection(db, 'user'), where('uid', '==', sales?.staffId));
+            const querySnapshot = await getDocs(q);
+            const newData: appuserdata[] = [];
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data() as appuserdata;
+                newData.push(data);
+            });
+
+            if (newData.length > 0) {
+                setuserdetails(newData[0]);
+            } else {
+                console.log('No user found for this staffId.');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
     };
 
-    fetchData();
-  }, [sales]);
+    if (sales?.staffId) {
+        fetchData();
+    }
+}, [sales]);
 
   const voidSales = async () => {
     setisdeleting(true)
