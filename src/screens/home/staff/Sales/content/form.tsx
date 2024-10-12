@@ -19,14 +19,15 @@ export default function Form({transId, sales}: Props) {
     React.useEffect(() => {
       const fetchData = async () => {
           try {
-              const salesDocRef = doc(db, 'sales1', 'salesdetails'); // Accessing the sales document
+              const salesDocRef = doc(db, 'sales1', 'salesdetails');
               const docSnapshot = await getDoc(salesDocRef);
-              console.log(docSnapshot.exists())
+              console.log(docSnapshot.exists());
               if (docSnapshot.exists()) {
                   const data = docSnapshot.data().details as salesdetails[];
-                  console.log(data)
-                      setrow(data);
-                    
+  
+                  const filteredData = data.filter(item => item.transId === transId);
+  
+                  setrow(filteredData);
               } else {
                   console.log('No such document!');
               }
@@ -37,6 +38,7 @@ export default function Form({transId, sales}: Props) {
   
       fetchData();
   }, [transId]);
+  
   
 
   React.useEffect(() => {
