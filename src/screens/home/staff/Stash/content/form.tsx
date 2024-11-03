@@ -1,11 +1,9 @@
-import { Button, Card, CardContent, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField, Typography } from '@mui/material'
+import { Button, Card, CardContent, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField } from '@mui/material'
 import React, { } from 'react'
 import { appuserdata, sales, salesdetails } from 'types/interfaces';
-import { collection, getDoc, doc, query, getDocs, where, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDoc, doc, query, getDocs, where, setDoc } from 'firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import './focus.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCartArrowDown, faDollar } from '@fortawesome/free-solid-svg-icons';
 type Props = {
   transId: number | null
   sales: sales
