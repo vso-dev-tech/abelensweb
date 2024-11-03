@@ -191,7 +191,7 @@ export default function StaffStashSales() {
           </CardContent>
         </Card>
         </div> */}
-        <h1>INCOMPLETE SALES TRANSACTION</h1>
+        <h1>PENDING SALES TRANSACTION</h1>
         <Select 
             defaultValue={'All'}
             value = {currentUser?.branch}
