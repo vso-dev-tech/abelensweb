@@ -10,7 +10,7 @@ const Navbarmenu = [
     {
         id: 2,
         title: 'Sales Stash',
-        path: '/admin/sales stash',
+        path: '/admin/stash',
         icon: faCartArrowDown,
     },
     {

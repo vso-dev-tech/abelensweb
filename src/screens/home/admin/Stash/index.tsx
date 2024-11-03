@@ -3,11 +3,10 @@ import '../admin.css'
 import '../../../../index.css'
 import { doc, onSnapshot } from '@firebase/firestore';
 import { db } from '../../../../firebase/index'
-import { Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
+import { MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
 import { sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
-import { BarChart } from '@mui/x-charts';
 import Form from './content/form';
 
 interface Row {
@@ -22,7 +21,7 @@ interface Row {
   transId: number,
 }
 
-export default function Sales() {
+export default function AdminStashSales() {
 
 
   const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
@@ -33,13 +32,13 @@ export default function Sales() {
   const [orderBy, setOrderBy] = React.useState<keyof Row>('transId');
   const [order, setOrder] = React.useState<'asc' | 'desc'>('asc');
   const [rows, setrow] = React.useState<sales[]>([])
-  const [sales, setsales] = React.useState<sales>()
-  const [branch, setbranch] = React.useState<string>('Nepo')
+  const [sales, setsales] = React.useState<any>();
+  const [branch] = React.useState<string>('Nepo')
   const [branchsales, setbranchsales] = React.useState<string>('All')
   const [branchinventory, setbranchinventory] = React.useState<sales[]>([])
   const [weeklytotalsales, setweeklytotalsales] = React.useState<sales[]>([])
   React.useEffect(() => {
-    const salesDocRef = doc(db, 'sales1', 'sales'); // Reference to the sales document
+    const salesDocRef = doc(db, 'sales1', 'stash'); // Reference to the sales document
     const unsubscribe = onSnapshot(salesDocRef, (doc) => {
       if (doc.exists()) {
         const salesData = doc.data().sales || []; // Get the sales array
@@ -50,17 +49,18 @@ export default function Sales() {
 
         salesData.forEach((data: sales) => {
           weeklydata.push(data);
+          if (!data.paid) {
+            if (data.branch === branch) {
+              branchinventorysales.push(data);
+            }
 
-          if (data.branch === branch) {
-            branchinventorysales.push(data);
-          }
-
-          if (branchsales !== 'All') {
-            if (data.branch === branchsales) {
+            if (branchsales !== 'All') {
+              if (data.branch === branchsales) {
+                newData.push(data);
+              }
+            } else {
               newData.push(data);
             }
-          } else {
-            newData.push(data);
           }
         });
         setrow(newData);
@@ -173,66 +173,7 @@ export default function Sales() {
   return (
     <div className='container'>
       <div style={{ overflowY: 'auto', flexDirection: 'column', marginLeft: 300, display: 'flex', width: '100%', height: '100%', justifyContent: 'center', alignItems: 'flex-start' }}>
-
         <div style={{ width: '96%', minHeight: '100%', marginTop: 200 }}>
-          <div style={{ flexDirection: 'row', display: 'flex', justifyContent: 'flex-start' }} >
-
-            <Card sx={{ marginRight: 10 }}>
-              <CardContent>
-                <h1 style={{ paddingLeft: 10 }}>WEEKLY OVERALL SALES</h1>
-                <BarChart
-                  xAxis={[{
-                    scaleType: 'band',
-                    data: dates
-                  }]}
-                  width={750}
-                  height={300}
-                  slotProps={{
-                    legend: {
-                      direction: 'row',
-                      position: { vertical: 'bottom', horizontal: 'middle' },
-                    },
-                  }}
-                  series={[
-                    { data: totalSales, color: '#30BE7A' },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent>
-                <h1 style={{ paddingLeft: 10 }}>WEEKLY BRANCH SALES</h1>
-                <p style={{ paddingLeft: 40 }}>SELECTED BRANCH: </p>
-                <Select
-                  defaultValue={'Nepo Branch'}
-                  value={branch}
-                  onChange={(e) => setbranch(e.target.value)}
-                  sx={{ width: 200, marginBottom: 5, borderWidth: 0, backgroundColor: '#fff', fontWeight: 700, marginLeft: 5 }}
-                >
-                  <MenuItem value={'Nepo'} key={1}>Nepo Branch</MenuItem>
-                  <MenuItem value={'Abelens'} key={2}>Abelens Branch</MenuItem>
-                </Select>
-                <BarChart
-                  xAxis={[{
-                    scaleType: 'band',
-                    data: branchdates
-                  }]}
-
-                  width={750}
-                  height={200}
-                  slotProps={{
-                    legend: {
-                      direction: 'row',
-                      position: { vertical: 'bottom', horizontal: 'middle' },
-                    },
-                  }}
-                  series={[
-                    { data: branchtotalSales, color: '#30BE7A' },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          </div>
           <h1>REAL-TIME SALE</h1>
           <Select
             defaultValue={'All'}
@@ -330,14 +271,6 @@ export default function Sales() {
                     >
                       Action
                     </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      disabled
-                      className='headerCell'
-                    >
-                      Status
-                    </TableSortLabel>
 
                   </TableCell>
                 </TableRow>
@@ -356,7 +289,6 @@ export default function Sales() {
                     <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleView(row)}>
                       <FontAwesomeIcon icon={faEye} width={50} height={50} />
                     </TableCell>
-                    <TableCell sx={{ color: row.paid ? 'green' : 'red' }}>{row.paid ? 'paid' : 'not fully paid'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

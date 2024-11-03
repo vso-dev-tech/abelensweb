@@ -142,8 +142,7 @@ export default function AddSales() {
           noitem: totalItemCount,
           discount: discount,
           subtotal: totalSum,
-          staffId: currentUser?.uid,
-          paid: true,
+          staffId: currentUser?.uid
         };
         // Retrieve existing sales records
         const salesDocRef = doc(db, 'sales1', 'sales');
@@ -202,7 +201,7 @@ export default function AddSales() {
     if (withDiscount > 0) {
       try {
         let highesttransId = 0;
-        const salesRef = doc(db, 'sales1', 'sales'); // Reference to the sales document
+        const salesRef = doc(db, 'sales1', 'stash'); // Reference to the sales document
         const salesRefSnap = await getDoc(salesRef);
 
         if (salesRefSnap.exists()) {
@@ -273,11 +272,10 @@ export default function AddSales() {
           noitem: totalItemCount,
           discount: discount,
           subtotal: totalSum,
-          staffId: currentUser?.uid,
-          paid: false,
+          staffId: currentUser?.uid
         };
         // Retrieve existing sales records
-        const salesDocRef = doc(db, 'sales1', 'sales');
+        const salesDocRef = doc(db, 'sales1', 'stash');
         const salesSnapshot = await getDoc(salesDocRef);
         let existingSales = [];
 
@@ -291,22 +289,6 @@ export default function AddSales() {
         // Save the updated sales back to the document
         await setDoc(salesDocRef, {
           sales: updatedSales
-        }, { merge: true });
-        // Retrieve existing sales records
-        const salesstashDocRef = doc(db, 'sales1', 'stash');
-        const salesstashSnapshot = await getDoc(salesstashDocRef);
-        let existingstashSales = [];
-
-        if (salesstashSnapshot.exists()) {
-          existingstashSales = salesstashSnapshot.data().sales || []; // Get existing sales if they exist
-        }
-
-        // Combine existing sales with new sales
-        const updatedstashSales = [...existingstashSales, newSalesData];
-
-        // Save the updated sales back to the document
-        await setDoc(salesstashDocRef, {
-          sales: updatedstashSales
         }, { merge: true }); // Merging will keep existing sales and add new ones
 
         // Save the sales details as before
@@ -339,8 +321,6 @@ export default function AddSales() {
       setissubmitting(false);
     }
   };
-
-
 
   const handleAddItem = (item: inventory) => {
     const existingItemCount = selecteditem.filter((selectedItem) => selectedItem.itemno === item.itemno).length;

@@ -15,6 +15,8 @@ import StaffSales from 'screens/home/staff/Sales';
 import StaffInventory from 'screens/home/staff/Inventory';
 import { StaffHeader } from 'screens/components/gen/staffheader';
 import StaffNavbarmenu from 'screens/components/gen/navigator/staffnavbarmenu';
+import StaffStashSales from 'screens/home/staff/Stash';
+import AdminStashSales from 'screens/home/admin/Stash';
 
 
 //**NOTE**(((((ONLY USE TSRFC WHEN CREATING NEW SCREENS)))))**NOTE**/
@@ -52,12 +54,14 @@ const App: React.FC = () => {
         </Route>
         <Route path = "admin">
           <Route path='sales' index element={ <ProtectedAdminRoute><Sales/></ProtectedAdminRoute>}/>
+          <Route path='stash' index element={ <ProtectedAdminRoute><AdminStashSales/></ProtectedAdminRoute>}/>
           <Route path='inventory' index element={ <ProtectedAdminRoute><Inventory/></ProtectedAdminRoute>}/>
           <Route path='settings' index element={ <ProtectedAdminRoute><Settings/></ProtectedAdminRoute>}/>
 
         </Route>
         <Route path = "staff">
           <Route path='sales' index element={ <StaffProtectedAdminRoute><StaffSales/></StaffProtectedAdminRoute>}/>
+          <Route path='stash' index element={ <StaffProtectedAdminRoute><StaffStashSales/></StaffProtectedAdminRoute>}/>
           <Route path='inventory' index element={ <StaffProtectedAdminRoute><StaffInventory/></StaffProtectedAdminRoute>}/>
         </Route>
       </Routes>
