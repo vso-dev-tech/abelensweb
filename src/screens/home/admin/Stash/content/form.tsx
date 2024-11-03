@@ -1,16 +1,20 @@
-import { Button, Card, CardContent, CircularProgress, Modal, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
+import { Card, CardContent, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@mui/material'
 import React from 'react'
 import { appuserdata, sales, salesdetails } from 'types/interfaces';
-import { doc, getDoc, getDocs, collection, setDoc, query, where } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
 import { db } from '../../../../../firebase/index';
 import './focus.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
 type Props = {
   transId: number | null
-  sales: sales | undefined
+  sales: sales
   close: () => void
 
+}
+
+interface BalanceResponse {
+  transId: number,
+  date: string,
+  paymentAmount: number
 }
 
 export default function Form({ transId, sales, close }: Props) {
@@ -18,14 +22,27 @@ export default function Form({ transId, sales, close }: Props) {
   const [order] = React.useState<'asc' | 'desc'>('asc');
   const [rows, setrow] = React.useState<salesdetails[]>([])
   const [userdetails, setuserdetails] = React.useState<appuserdata>();
-  const [isdeleting, setisdeleting] = React.useState(false);
-  const [success, setsuccess] = React.useState(false);
+  const [currentBalance, setCurrentBalance] = React.useState<BalanceResponse[]>([]);
+  const [allBalance, setAllBalance] = React.useState<number>(0);
+  
   React.useEffect(() => {
     const fetchData = async () => {
       try {
         const salesDetailsDocRef = doc(db, 'sales1', 'salesdetails'); // Reference to the salesdetails document
+        const balanceDocref = doc(db, 'sales1', 'balance');
         const salesDetailsSnapshot = await getDoc(salesDetailsDocRef);
+        const docBalanceSnapshot = await getDoc(balanceDocref)
 
+        if (docBalanceSnapshot.exists()) {
+          const b = docBalanceSnapshot.data().payment as BalanceResponse[];
+
+          const filteredBalance = b.filter(item => item.transId === transId) || [];
+          const totalBalance = filteredBalance.reduce((total, item) => total + (item.paymentAmount || 0), 0);
+
+          // Set the calculated total in `allBalance`
+          setAllBalance(totalBalance);
+          setCurrentBalance(filteredBalance)
+        }
         if (salesDetailsSnapshot.exists()) {
           const salesDetailsData = salesDetailsSnapshot.data().details || []; // Get the details array
 
@@ -78,47 +95,6 @@ export default function Form({ transId, sales, close }: Props) {
         fetchData();
     }
 }, [sales]);
-
-  const voidSales = async () => {
-    setisdeleting(true)
-    setsuccess(false)
-    try {
-      // Reference to the sales document
-      const salesDocRef = doc(db, 'sales1', 'sales');
-      const salesDetailsDocRef = doc(db, 'sales1', 'salesdetails');
-
-      // Fetch the current sales data
-      const salesSnapshot = await getDoc(salesDocRef);
-      const salesDetailsSnapshot = await getDoc(salesDetailsDocRef);
-
-      if (salesSnapshot.exists() && salesDetailsSnapshot.exists()) {
-        const salesData = salesSnapshot.data().sales || [];
-        const salesDetailsData = salesDetailsSnapshot.data().details || [];
-
-        // Filter out the sales and sales details with the given transId
-        const updatedSales = salesData.filter((sale: { transId: number | null; }) => sale.transId !== transId);
-        const updatedSalesDetails = salesDetailsData.filter((detail: { transId: number | null; }) => detail.transId !== transId);
-
-        // Update the sales document
-        await setDoc(salesDocRef, { sales: updatedSales }, { merge: true });
-        // Update the sales details document
-        await setDoc(salesDetailsDocRef, { details: updatedSalesDetails }, { merge: true });
-
-        setsuccess(true)
-        setTimeout(() => {
-          setisdeleting(false)
-          close()
-        }, 2000);
-
-
-      } else {
-        console.error('Sales or sales details document does not exist');
-      }
-    } catch (error) {
-      console.error('Error voiding sales:', error);
-    }
-  };
-
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 75, flexDirection: 'column', }}>
@@ -202,7 +178,22 @@ export default function Form({ transId, sales, close }: Props) {
           </TableBody>
         </Table>
       </TableContainer>
-
+      <Card sx={{ alignSelf: 'flex-end', marginRight: '3rem', marginTop: 5, flexDirection: 'row', display: 'flex', justifyContent: 'space-between', width: '20%' }}>
+      <CardContent>
+          {currentBalance && currentBalance.map((item) => {
+            return (
+              <div style={{ width: 'auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', }}>
+                  <h4>
+                    {item.date}
+                  </h4>
+                  <h4 style={{ textAlign: 'right', marginLeft: 40 }}>₱{item.paymentAmount}</h4>
+                </div>
+              </div>
+            )
+          })}
+        </CardContent>
+      </Card>
       <Card sx={{ alignSelf: 'flex-end', marginRight: 5, marginTop: 5, flexDirection: 'row', display: 'flex', justifyContent: 'space-between', width: '50%' }}>
         <CardContent>
 
@@ -219,37 +210,15 @@ export default function Form({ transId, sales, close }: Props) {
           <h4>Subtotal: </h4>
           <h4>Discount: </h4>
           <h1>Total: </h1>
+          <h1>Balance: </h1>
         </CardContent>
         <CardContent sx={{ textAlign: 'right', paddingRight: 5 }}>
           <h4>{sales?.subtotal}</h4>
           <h4 style={{ color: 'red' }}>{sales?.discount}</h4>
           <h1>{sales?.total}</h1>
+          <h1>{sales.total - allBalance}</h1>
         </CardContent>
       </Card>
-      <Button variant='contained' onClick={voidSales} sx={{ marginTop: 10, color: '#fff', fontWeight: 600, fontSize: 20, backgroundColor: '#f00' }}>VOID SALE</Button>
-      <Modal open={isdeleting} >
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 75, width: '100%' }}>
-          <Card>
-            <CardContent sx={{ padding: 10, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-
-              {success ? 
-              <>
-                <FontAwesomeIcon icon={faCheck} size='2xl' color='green' />
-                <h1>Successfully Voided</h1>
-              </>
-
-              :
-                <>
-                  <CircularProgress size={50} sx={{ marginTop: 2 }} />
-                  <h1>
-                    Voiding Item
-                  </h1>
-                </>
-              }
-            </CardContent>
-          </Card>
-        </div>
-      </Modal>
     </div>
   )
 }

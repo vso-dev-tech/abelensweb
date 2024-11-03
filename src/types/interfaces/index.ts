@@ -30,7 +30,9 @@ export interface sales {
   noitem: number,
   staffId: string,
   subtotal: number,
+  balance: number,
   total: number,
+  paid: boolean,
 }
 
 export interface salesdetails {
