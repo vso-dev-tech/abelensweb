@@ -3,11 +3,10 @@ import '../admin.css'
 import '../../../../index.css'
 import { doc, onSnapshot } from '@firebase/firestore';
 import {db} from '../../../../firebase/index'
-import { Button, Card, CardContent, MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
+import { MenuItem, Modal, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField } from '@mui/material'
 import { sales } from 'types/interfaces';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCartPlus, faClose, faEye } from '@fortawesome/free-solid-svg-icons';
-import { BarChart } from '@mui/x-charts';
+import { faClose, faEye } from '@fortawesome/free-solid-svg-icons';
 import Form from './content/form';
 import AddSales from './content/addsales';
 import { AuthContext } from 'auth';
@@ -157,21 +156,11 @@ export default function StaffStashSales() {
         };
 
         window.addEventListener('resize', handleResize); // Add resize event listener
-
+        console.log(screenWidth)
         return () => {
             window.removeEventListener('resize', handleResize); // Cleanup event listener
         };
-    }, []);
-
-    let chartWidth = 750;
-    let chartHeight1 = 350;
-    if (screenWidth <= 1700 && screenWidth > 1463) {
-        chartWidth = 550;
-        chartHeight1 = 300
-    } else if (screenWidth <= 1463) {
-        chartWidth = 400;
-        chartHeight1 = 350;
-    }
+    }, [screenWidth]);
 
   return (
     <div className='container'>
