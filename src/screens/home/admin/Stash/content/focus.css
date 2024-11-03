@@ -1,0 +1,6 @@
+.noOutline:focus {
+    outline: none;
+  }
+.noOutline {
+    outline: none;
+  }

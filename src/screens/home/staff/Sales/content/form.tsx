@@ -24,10 +24,17 @@ export default function Form({transId, sales}: Props) {
               console.log(docSnapshot.exists());
               if (docSnapshot.exists()) {
                   const data = docSnapshot.data().details as salesdetails[];
+                  const newData: salesdetails[] = [];
+                  const itemNumbers: Set<string> = new Set(); // Set to store unique item numbers
+        
+                  data.forEach((data: salesdetails) => {
+                    if (data.transId === transId && !itemNumbers.has(data.itemno)) {
+                      newData.push(data);
+                      itemNumbers.add(data.itemno);
+                    }
+                  });
   
-                  const filteredData = data.filter(item => item.transId === transId);
-  
-                  setrow(filteredData);
+                  setrow(newData);
               } else {
                   console.log('No such document!');
               }
