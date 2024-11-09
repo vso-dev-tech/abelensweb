@@ -179,9 +179,11 @@ export default function Form({ transId, sales, close }: Props) {
         </Table>
       </TableContainer>
       <Card sx={{ alignSelf: 'flex-end', marginRight: '3rem', marginTop: 5, flexDirection: 'row', display: 'flex', justifyContent: 'space-between', width: '20%' }}>
+      {currentBalance && currentBalance.map((item) => {
+        return (
       <CardContent>
-          {currentBalance && currentBalance.map((item) => {
-            return (
+         
+            
               <div style={{ width: 'auto' }}>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', }}>
                   <h4>
@@ -190,9 +192,9 @@ export default function Form({ transId, sales, close }: Props) {
                   <h4 style={{ textAlign: 'right', marginLeft: 40 }}>₱{item.paymentAmount}</h4>
                 </div>
               </div>
-            )
-          })}
         </CardContent>
+           )
+        })}
       </Card>
       <Card sx={{ alignSelf: 'flex-end', marginRight: 5, marginTop: 5, flexDirection: 'row', display: 'flex', justifyContent: 'space-between', width: '50%' }}>
         <CardContent>
