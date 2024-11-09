@@ -127,7 +127,7 @@ export default function Form({transId, sales}: Props) {
                     active={orderBy === 'unitprice'}
                     direction={orderBy === 'unitprice' ? order : 'asc'}
                   >
-                    Unit Price
+                    Selling Price
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
@@ -151,8 +151,8 @@ export default function Form({transId, sales}: Props) {
                   <TableCell>{row.itemno}</TableCell>
                   <TableCell>{row.itemname}</TableCell>
                   <TableCell>{row.unit}</TableCell>
-                  <TableCell>₱{row.unitprice}</TableCell>
-                  <TableCell>₱{row.unitprice * row.unit}</TableCell>
+                  <TableCell>₱{row.sellingprice}</TableCell>
+                  <TableCell>₱{row.sellingprice * row.unit}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
