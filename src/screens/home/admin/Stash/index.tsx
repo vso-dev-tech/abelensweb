@@ -174,7 +174,7 @@ export default function AdminStashSales() {
     <div className='container'>
       <div style={{ overflowY: 'auto', flexDirection: 'column', marginLeft: 300, display: 'flex', width: '100%', height: '100%', justifyContent: 'center', alignItems: 'flex-start' }}>
         <div style={{ width: '96%', minHeight: '100%', marginTop: 200 }}>
-          <h1>REAL-TIME SALE</h1>
+          <h1>PENDING SALES TRANSACTION</h1>
           <Select
             defaultValue={'All'}
             value={branchsales}
