@@ -178,7 +178,7 @@ export default function Form({ transId, sales, close }: Props) {
           </TableBody>
         </Table>
       </TableContainer>
-      <Card sx={{ alignSelf: 'flex-end', marginRight: '3rem', marginTop: 5, flexDirection: 'column', display: 'flex', justifyContent: 'space-between', width: '20%' }}>
+      <Card sx={{ alignSelf: 'flex-end', marginRight: '3rem', marginTop: 5, flexDirection: 'row', display: 'flex', justifyContent: 'space-between', width: '20%' }}>
       {currentBalance && currentBalance.map((item) => {
         return (
       <CardContent>

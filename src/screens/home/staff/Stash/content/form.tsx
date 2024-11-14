@@ -24,54 +24,55 @@ export default function Form({ transId, sales }: Props) {
   const [userdetails, setuserdetails] = React.useState<appuserdata>();
   const [openMinusBalance, setOpenMinusBalance] = React.useState<boolean>(false);
   const [payingBalance, setPayingBalance] = React.useState<number>(0);
-  const [payingBalanceInput, setPayingBalanceInput] = React.useState<string>(''); 
+  const [payingBalanceInput, setPayingBalanceInput] = React.useState<string>(''); // Raw input state for typing
+
   const [currentBalance, setCurrentBalance] = React.useState<BalanceResponse[]>([]);
   const [allBalance, setAllBalance] = React.useState<number>(0);
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const salesDocRef = doc(db, 'sales1', 'salesdetails');
+        const balanceDocref = doc(db, 'sales1', 'balance');
+        const docSnapshot = await getDoc(salesDocRef);
+        const docBalanceSnapshot = await getDoc(balanceDocref)
+        console.log(docSnapshot.exists());
+        if (docBalanceSnapshot.exists()) {
+          const b = docBalanceSnapshot.data().payment as BalanceResponse[];
+
+          const filteredBalance = b.filter(item => item.transId === transId) || [];
+          const totalBalance = filteredBalance.reduce((total, item) => total + (item.paymentAmount || 0), 0);
+
+          // Set the calculated total in `allBalance`
+          setAllBalance(totalBalance);
+          setCurrentBalance(filteredBalance)
+        }
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data().details as any[];
+          const newData: salesdetails[] = [];
+          const itemNumbers: Set<string> = new Set(); // Set to store unique item numbers
+
+          data.forEach((data: salesdetails) => {
+            if (data.transId === transId && !itemNumbers.has(data.itemno)) {
+              newData.push(data);
+              itemNumbers.add(data.itemno);
+            }
+          });
+          setrow(newData);
+        } else {
+          console.log('No such document!');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [transId, openMinusBalance]);
+
+
 
   React.useEffect(() => {
-    if (transId) {
-      fetchData();
-    }
-  }, [transId]);  // Only run when transId changes
-
-  const fetchData = async () => {
-    try {
-      const salesDocRef = doc(db, 'sales1', 'salesdetails');
-      const balanceDocref = doc(db, 'sales1', 'balance');
-      const docSnapshot = await getDoc(salesDocRef);
-      const docBalanceSnapshot = await getDoc(balanceDocref)
-
-      if (docBalanceSnapshot.exists()) {
-        const b = docBalanceSnapshot.data().payment as BalanceResponse[];
-
-        const filteredBalance = b.filter(item => item.transId === transId) || [];
-        const totalBalance = filteredBalance.reduce((total, item) => total + item.paymentAmount, 0);
-        setAllBalance(totalBalance);
-        setCurrentBalance(filteredBalance)
-      }
-
-      if (docSnapshot.exists()) {
-        const data = docSnapshot.data().details as any[];
-        const newData: salesdetails[] = [];
-        const itemNumbers: Set<string> = new Set();
-
-        data.forEach((data: salesdetails) => {
-          if (data.transId === transId && !itemNumbers.has(data.itemno)) {
-            newData.push(data);
-            itemNumbers.add(data.itemno);
-          }
-        });
-        setrow(newData);
-      } else {
-        console.log('No such document!');
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  React.useEffect(() => {
-    const fetchUserDetails = async () => {
+    const fetchData = async () => {
       try {
         const q = query(collection(db, 'user'), where('uid', '==', sales?.staffId));
         const querySnapshot = await getDocs(q);
@@ -93,95 +94,78 @@ export default function Form({ transId, sales }: Props) {
     };
 
     if (sales?.staffId) {
-      fetchUserDetails();
-    }
-  }, [sales?.staffId]);  // Only run if sales.staffId changes
-
-  const markAsComplete = async () => {
-    const totalBalance = (sales?.total - allBalance)
-    console.log(totalBalance, sales?.total === allBalance, sales.total, allBalance)
-    if (totalBalance !== 0) {
-      alert('Make sure the all balance is cleared before marking it complete.')
-      return
-    }
-    const salesDocRef = doc(db, 'sales1', 'sales');
-    const salesSnapshot = await getDoc(salesDocRef);
-
-    if (salesSnapshot.exists()) {
-      const salesData = salesSnapshot.data().sales || [];
-      const updatedSalesData = salesData.map((sale: any) =>
-        sale.transId === transId ? { ...sale, paid: true } : sale
-      );
-
-      await setDoc(salesDocRef, { sales: updatedSalesData }, { merge: true });
-      console.log('Total updated successfully');
-    }
-    const stashDocRef = doc(db, 'sales1', 'stash');
-
-    const stashSnapshot = await getDoc(stashDocRef);
-    if (stashSnapshot.exists()) {
-      const stashData = stashSnapshot.data().sales || [];
-      const updatedstashData = stashData.map((sale: any) =>
-        sale.transId === transId ? { ...sale, paid: true } : sale
-      );
-
-      await setDoc(stashDocRef, { sales: updatedstashData }, { merge: true });
-      console.log('Total updated successfully');
       fetchData();
     }
-  };
+  }, [sales]);
 
   const editTotal = async (transId: number, current: number): Promise<void> => {
-    const totalBalance = (sales?.total - allBalance);
-    console.log(totalBalance, sales?.total === allBalance, sales.total, allBalance)
+
+    const totalBalance = (sales?.total || 0) - allBalance
     if (allBalance >= sales?.total) {
-      alert('transaction already paid');
-      return;
+      alert('transaction already paid')
+      return
     }
     if (totalBalance < current) {
-      alert('Payment is higher than the balance');
-      return;
+      alert('Payment is higher than the balance')
+      return
     }
     try {
       const stashDocRef = doc(db, 'sales1', 'stash');
 
+      // Get the current sales data
       const stashSnapshot = await getDoc(stashDocRef);
       if (stashSnapshot.exists()) {
-        const stashData = stashSnapshot.data().sales || [];
-        const updatedstashData = stashData.map((sale: any) =>
-          sale.transId === transId ? { ...sale, paid: sales?.total === allBalance || current === totalBalance } : sale
-      );
+        const stashData = stashSnapshot.data().sales || []; // Retrieve existing sales array
 
+        // Update the specific sale's total where transId matches
+        const updatedstashData = stashData.map((sale: any) =>
+          sale.transId === transId ? { ...sale, paid: sales.total - totalBalance === 0 } : sale
+        );
+
+        // Save the updated sales data back to Firestore
         await setDoc(stashDocRef, { sales: updatedstashData }, { merge: true });
         console.log('Total updated successfully');
-        const salesDocRef = doc(db, 'sales1', 'sales');
-        const salesSnapshot = await getDoc(salesDocRef);
-        if (salesSnapshot.exists()) {
-          const salesData = salesSnapshot.data().sales || [];
-          const updatedSalesData = salesData.map((sale: any) =>
-            sale.transId === transId ? { ...sale, paid: sales?.total === allBalance || current === totalBalance} : sale
-          );
-          await setDoc(salesDocRef, { sales: updatedSalesData }, { merge: true });
-          console.log('Total updated successfully');
-        }
+
+        // Reference to the `balance` document
         const balanceDocRef = doc(db, 'sales1', 'balance');
         const balanceSnapshot = await getDoc(balanceDocRef);
+
+        // Fetch the current balance data and find the highest balanceId
         const balanceData = balanceSnapshot.exists() ? balanceSnapshot.data().payment || [] : [];
         const highestBalanceId = balanceData.reduce((maxId: any, entry: any) => Math.max(maxId, entry.balanceId || 0), 0);
         const newBalanceId = highestBalanceId + 1;
 
+
+        const salesDocRef = doc(db, 'sales1', 'sales');
+
+        // Get the current sales data
+        const salesSnapshot = await getDoc(salesDocRef);
+        if (salesSnapshot.exists()) {
+          const salesData = salesSnapshot.data().sales || []; // Retrieve existing sales array
+
+          // Update the specific sale's total where transId matches
+          const updatedSalesData = salesData.map((sale: any) =>
+            sale.transId === transId ? { ...sale, paid: sales.total - totalBalance === 0 } : sale
+          );
+
+          // Save the updated sales data back to Firestore
+          await setDoc(salesDocRef, { sales: updatedSalesData }, { merge: true });
+          console.log('Total updated successfully');
+
+        }
         const newPaymentData = {
           balanceId: newBalanceId,
           transId: transId,
           date: new Date().toDateString(),
-          paymentAmount: parseInt(current.toFixed(2))
+          paymentAmount: current.toFixed(2)
         };
 
+        // Update the balance data with the new entry
         const updatedBalanceData = [...balanceData, newPaymentData];
         await setDoc(balanceDocRef, { payment: updatedBalanceData }, { merge: true });
+
         console.log('Balance entry added successfully');
         setOpenMinusBalance(false);
-        fetchData();
       } else {
         console.error('Sales document does not exist');
       }
@@ -189,7 +173,6 @@ export default function Form({ transId, sales }: Props) {
       console.error('Error updating total or adding balance entry:', error);
     }
   };
-
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 75, flexDirection: 'column', }}>
@@ -266,14 +249,12 @@ export default function Form({ transId, sales }: Props) {
                 <TableCell>{row.itemno}</TableCell>
                 <TableCell>{row.itemname}</TableCell>
                 <TableCell>{row.unit}</TableCell>
-                <TableCell>₱{row.sellingprice}</TableCell>
-                <TableCell>₱{row.sellingprice * row.unit}</TableCell>
+                <TableCell>₱{row.unitprice}</TableCell>
+                <TableCell>₱{row.unitprice * row.unit}</TableCell>
               </TableRow>
 
             ))}
             <Button onClick={() => { setOpenMinusBalance(true); }} variant='contained' sx={{ marginTop: 2, marginBottom: 2, marginLeft: 2, height: 50, width: 150, background: '#30BE7A ', flexDirection: 'column', color: '#fff', fontWeight: 'bold', fontSize: 12, justifyContent: 'center', alignItems: 'center' }}>ADD PAYMENT</Button>
-            {sales?.total - allBalance === 0 && <Button onClick={() => markAsComplete()} variant='contained' sx={{ marginTop: 2, marginBottom: 2, marginLeft: 2, height: 50, width: 150, background: '#f00 ', flexDirection: 'column', color: '#fff', fontWeight: 'bold', fontSize: 12, justifyContent: 'center', alignItems: 'center' }}>MARK AS PAID</Button>}
-
           </TableBody>
         </Table>
       </TableContainer>

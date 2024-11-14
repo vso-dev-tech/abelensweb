@@ -167,6 +167,30 @@ export default function StaffStashSales() {
         <div style = {{ overflowY: 'auto', flexDirection: 'column', marginLeft: 300, display: 'flex',width: '100%', height: '100%', justifyContent: 'center', alignItems: 'flex-start'}}>
         
         <div style={{ width: '96%', minHeight: '100%', marginTop: 200}}>
+        {/* <div style={{flexDirection: 'row', display: 'flex', justifyContent: 'flex-start'}} >
+        
+        <Card sx = {{marginRight: 10}}>
+          <CardContent>
+          <h1 style = {{paddingLeft: 10}}>WEEKLY OVERALL SALES</h1>
+          <BarChart
+             width={chartWidth}
+             height={chartHeight1}
+            xAxis={[{ scaleType: 'band', 
+            data: dates
+            }]}
+            slotProps={{
+              legend: {
+                direction: 'row',
+                position: { vertical: 'bottom', horizontal: 'middle' },
+              },
+            }}
+            series={[
+              { data: totalSales, color: '#30BE7A'},
+            ]}
+          />
+          </CardContent>
+        </Card>
+        </div> */}
         <h1>PENDING SALES TRANSACTION</h1>
         <Select 
             defaultValue={'All'}
