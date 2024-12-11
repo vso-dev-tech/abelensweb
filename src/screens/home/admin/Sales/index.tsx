@@ -57,10 +57,14 @@ export default function Sales() {
 
           if (branchsales !== 'All') {
             if (data.branch === branchsales) {
-              newData.push(data);
+              if(data.paid){
+                newData.push(data);
+              }
             }
           } else {
-            newData.push(data);
+            if(data.paid){
+              newData.push(data);
+            }
           }
         });
         setrow(newData);

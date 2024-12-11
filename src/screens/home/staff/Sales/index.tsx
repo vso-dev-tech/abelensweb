@@ -56,15 +56,21 @@ export default function StaffSales() {
         salesData.forEach((data: sales) => {
 
           if (data.branch === branch) {
-            branchinventorysales.push(data);
+            if(data.paid) {
+              branchinventorysales.push(data);
+            }
           }
 
           if (branch !== 'All') {
             if (data.branch === branch) {
+              if(data.paid){
               newData.push(data);
+              }
             }
           } else {
-            newData.push(data);
+            if(data.paid) {
+              newData.push(data);
+            }
           }
         });
         setrow(newData);
